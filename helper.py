@@ -17,6 +17,7 @@ import os
 import requests
 import json
 from dotenv import load_dotenv
+from tqdm import tqdm
 
 load_dotenv()
 plt.switch_backend("agg")
@@ -106,7 +107,7 @@ def get_data_from_ceic(
     if not historical_extension:
         content = Ceic.series(series_id=series_ids, start_date=start_date).data
     else:
-        for series in series_ids:
+        for series in tqdm(series_ids):
             try:
                 content += Ceic.series(
                     series_id=series,
