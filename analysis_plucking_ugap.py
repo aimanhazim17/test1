@@ -79,7 +79,15 @@ df_ceiling["urate_gap"] = df_ceiling["urate"] - df_ceiling["urate_ceiling"]
 # %%
 # IV --- Output
 # Trim columns
-cols_keep = ["country", "month", "urate_gap", "urate", "urate_ceiling", "urate_peak", "urate_trough"]
+cols_keep = [
+    "country",
+    "month",
+    "urate_gap",
+    "urate",
+    "urate_ceiling",
+    "urate_peak",
+    "urate_trough",
+]
 df_ceiling = df_ceiling[cols_keep]
 # Reset indices
 df_ceiling = df_ceiling.reset_index(drop=True)

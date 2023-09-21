@@ -24,6 +24,7 @@ t_start = date(1947, 1, 1)
 
 # %%
 # I --- Load data from CEIC
+# Country panel
 seriesids_all = pd.read_csv(path_ceic + "ceic_macro_quarterly" + ".csv")
 count_col = 0
 for col in list(seriesids_all.columns):
@@ -43,17 +44,29 @@ for col in list(seriesids_all.columns):
     df_sub = df_sub.reset_index()
     df_sub = df_sub.rename(columns={"date": "date", "country": "country", "value": col})
     # collapse into quarterly
-    df_sub["quarter"] = pd.to_datetime(df_sub["date"]).dt.to_period("m")
+    df_sub["quarter"] = pd.to_datetime(df_sub["date"]).dt.to_period("q")  # quarterly
     df_sub = df_sub.groupby(["quarter", "country"])[col].mean().reset_index(drop=False)
     df_sub = df_sub[["quarter", "country", col]]
     # merge
     if count_col == 0:
         df = df_sub.copy()
     elif count_col > 0:
-        df = df.merge(df_sub, on=["quarter", "country"], how="outer")
+        df = df.merge(df_sub, on=["quarter", "country"], how="outer", validate="one_to_one")
     # next
     count_col += 1
 df = df.reset_index(drop=True)
+# Brent
+df_brent = get_data_from_ceic(
+    series_ids=[42651501],
+    start_date=t_start,
+    historical_extension=True
+)
+df_brent = df_brent[["date", "value"]]
+df_brent = df_brent.rename(columns={"date": "date", "value": "brent"})
+df_brent["quarter"] = pd.to_datetime(df_brent["date"]).dt.to_period("q")  # quarterly
+df_brent = df_brent.groupby("quarter")["brent"].mean().reset_index(drop=False)
+# Merge
+df = df.merge(df_brent, on="quarter", how="left", validate="many_to_one")
 # save interim copy
 df["quarter"] = df["quarter"].astype("str")
 df.to_parquet(path_data + "data_macro_quarterly_raw" + ".parquet")
