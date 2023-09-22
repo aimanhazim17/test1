@@ -21,7 +21,7 @@ path_data = "./data/"
 path_output = "./output/"
 path_ceic = "./ceic/"
 tel_config = os.getenv("TEL_CONFIG")
-t_start_q = "2000Q1"
+t_start_q = "2012Q1"
 t_end_q = "2023Q1"
 
 # %%
@@ -66,8 +66,8 @@ list_countries_keep = [
 ]
 df = df[df["country"].isin(list_countries_keep)]
 # Transform
-cols_pretransformed = ["rgdp", "m2", "corecpi"]
-cols_levels = ["reer", "brent"]
+cols_pretransformed = ["rgdp", "m2", "cpi", "corecpi", "maxgepu"]
+cols_levels = ["reer", "brent", "gepu"]
 cols_rate = ["stir", "ltir", "urate_ceiling", "urate_gap"]
 for col in cols_levels:
     df[col] = 100 * ((df[col] / df.groupby("country")[col].shift(4)) - 1)
@@ -87,13 +87,13 @@ df = df.set_index(["country", "time"])
 # %%
 # II --- Analysis
 # Setup
-endog_base = ["brent", "urate_ceiling", "rgdp", "corecpi", "stir"]
-# exog_base = []
+endog_base = ["brent", "stir", "urate_ceiling", "corecpi"]
+exog_base = ["gepu", "maxgepu"]
 # Estimate
-irf = lp.PanelLP(
+irf = lp.PanelLPX(
     data=df,
     Y=endog_base,
-    # X=exog_base,
+    X=exog_base,
     response=endog_base,
     horizon=16,
     lags=4,
