@@ -44,6 +44,7 @@ df = df.merge(df_ugap, on=["country", "quarter"], how="outer", validate="one_to_
 # II --- Pre-analysis wrangling
 # Trim countries
 list_countries_keep = [
+    "australia",
     "malaysia",
     "singapore",
     "thailand",
@@ -56,7 +57,7 @@ list_countries_keep = [
     "italy",
     "japan",
     "south_korea",
-    "taiwan",
+    # "taiwan",
     "hong_kong_sar_china_",
     "india",
     # "china",
@@ -67,7 +68,7 @@ list_countries_keep = [
 df = df[df["country"].isin(list_countries_keep)]
 # Transform
 cols_pretransformed = ["rgdp", "m2", "cpi", "corecpi", "maxgepu"]
-cols_levels = ["reer", "brent", "gepu"]
+cols_levels = ["reer", "ber", "brent", "gepu"]
 cols_rate = ["stir", "ltir", "urate_ceiling", "urate_gap"]
 for col in cols_levels:
     df[col] = 100 * ((df[col] / df.groupby("country")[col].shift(4)) - 1)
@@ -87,7 +88,7 @@ df = df.set_index(["country", "time"])
 # %%
 # II --- Analysis
 # Setup
-endog_base = ["brent", "stir", "urate_ceiling", "corecpi"]
+endog_base = ["brent", "stir", "ber", "urate", "corecpi"]
 exog_base = ["gepu", "maxgepu"]
 # Estimate
 irf = lp.PanelLPX(
@@ -96,7 +97,7 @@ irf = lp.PanelLPX(
     X=exog_base,
     response=endog_base,
     horizon=16,
-    lags=4,
+    lags=2,
     varcov="kernel",
     ci_width=0.95,
 )
