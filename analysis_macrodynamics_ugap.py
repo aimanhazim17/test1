@@ -69,7 +69,7 @@ df = df[df["country"].isin(list_countries_keep)]
 # Transform
 cols_pretransformed = ["rgdp", "m2", "cpi", "corecpi", "maxgepu"]
 cols_levels = ["reer", "ber", "brent", "gepu"]
-cols_rate = ["stir", "ltir", "urate_ceiling", "urate_gap"]
+cols_rate = ["stir", "ltir", "urate_ceiling", "urate_gap", "privdebt", "privdebt_bank"]
 for col in cols_levels:
     df[col] = 100 * ((df[col] / df.groupby("country")[col].shift(4)) - 1)
 for col in cols_rate:
@@ -88,7 +88,7 @@ df = df.set_index(["country", "time"])
 # %%
 # II --- Analysis
 # Setup
-endog_base = ["brent", "stir", "ber", "urate", "corecpi"]
+endog_base = ["brent", "privdebt", "stir", "ber", "urate_ceiling", "urate_gap", "corecpi"]
 exog_base = ["gepu", "maxgepu"]
 # Estimate
 irf = lp.PanelLPX(
@@ -97,7 +97,7 @@ irf = lp.PanelLPX(
     X=exog_base,
     response=endog_base,
     horizon=16,
-    lags=2,
+    lags=1,
     varcov="kernel",
     ci_width=0.95,
 )

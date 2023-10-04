@@ -684,3 +684,78 @@ def manual_irf_subplots_channels(
     )
     # output
     return fig
+
+
+def subplots_linecharts(
+        data: pd.DataFrame,
+        col_group: str,
+        cols_values: list[str],
+        cols_values_nice: list[str],
+        col_time: str,
+        annot_size: list[int],
+        font_size: list[int],
+        line_colours: list[str], 
+        line_dashes: list[str],
+        main_title: str,
+        maxrows: int,
+        maxcols: int,
+):
+    # Create titles first
+    titles = []
+    for group in list(data[col_group].unique()):
+        titles = titles + [group]
+    maxr = maxrows
+    maxc = maxcols
+    fig = make_subplots(rows=maxr, cols=maxc, subplot_titles=titles)
+    nr = 1
+    nc = 1
+    # columns: shocks, rows: responses; move columns, then rows
+    legend_count = 0
+    for group in list(data[col_group].unique()):
+        # Data copy
+        d = data[(data[col_group] == group)].copy()
+        # Set legend
+        if legend_count == 0:
+            showlegend_bool = True
+        elif legend_count > 0:
+            showlegend_bool = False
+        # Add line plots 
+        for col, col_nice, line_colour, line_dash in zip(cols_values, cols_values_nice, line_colours, line_dashes):
+            fig.add_trace(
+                go.Scatter(
+                    x=d[col_time].astype("str"),
+                    y=d[col],
+                    name=col_nice,
+                    mode="lines",
+                    line=dict(width=1.5, color=line_colour, dash=line_dash),
+                    showlegend=showlegend_bool,
+                ),
+                row=nr,
+                col=nc,
+            )
+        # Move to next subplot
+        nc += 1
+        if nr > maxr:
+            raise NotImplementedError(
+                "More subplots than allowed by dimension of main plot!"
+            )
+        if nc > maxc:
+            nr += 1  # next row
+            nc = 1  # reset column
+        # No further legends
+        legend_count += 1
+    for annot in fig["layout"]["annotations"]:
+        annot["font"] = dict(size=annot_size, color="black")  # subplot title font size
+    fig.update_layout(
+        title=main_title,
+        # yaxis_title=y_title,
+        plot_bgcolor="white",
+        hovermode="x",
+        font=dict(color="black", size=font_size),
+        showlegend=True,
+        barmode="relative",
+        height=768,
+        width=1366,
+    )
+    # output
+    return fig
