@@ -31,9 +31,9 @@ tel_config = os.getenv("TEL_CONFIG")
 
 # %%
 # I --- Load data
-df = pd.read_parquet(path_output + "plucking_ugap.parquet")
-# df["month"] = pd.to_datetime(df["month"]).dt.to_period("m")
-# df["month"] = df["month"].astype("str")
+df = pd.read_parquet(path_output + "plucking_ugap_quarterly.parquet")
+# df["quarter"] = pd.to_datetime(df["quarter"]).dt.to_period("q")
+# df["quarter"] = df["quarter"].astype("str")
 
 # %%
 # II --- Pre-analysis wrangling
@@ -106,17 +106,17 @@ for country_groups, snakecase_group_name, nice_group_name, n_rows, n_cols in tqd
         col_group="country",
         cols_values=["urate", "urate_ceiling"],
         cols_values_nice=["U-Rate", "U-Rate Floor"],
-        col_time="month",
+        col_time="quarter",
         annot_size=12,
         font_size=12,
         line_colours=["black", "red"],
         line_dashes=["solid", "dash"],
-        main_title="Unemployment rate and estimated 'Plucking' floor in "
+        main_title="Quarterly unemployment rate and estimated 'Plucking' floor in "
         + nice_group_name,
         maxrows=n_rows,
         maxcols=n_cols,
     )
-    file_name = path_output + "urate_and_ceiling_" + snakecase_group_name
+    file_name = path_output + "urate_and_ceiling_quarterly_" + snakecase_group_name
     fig_urate_and_ceiling.write_image(file_name + ".png")
     # telsendimg(
     #     conf=tel_config,
@@ -124,7 +124,7 @@ for country_groups, snakecase_group_name, nice_group_name, n_rows, n_cols in tqd
     #     cap=file_name
     # )
     list_file_names += [file_name]
-pdf_file_name = path_output + "urate_and_ceiling"
+pdf_file_name = path_output + "urate_and_ceiling_quarterly"
 pil_img2pdf(list_images=list_file_names, extension="png", pdf_name=pdf_file_name)
 telsendfiles(conf=tel_config, path=pdf_file_name + ".pdf", cap=pdf_file_name)
 
@@ -132,7 +132,7 @@ telsendfiles(conf=tel_config, path=pdf_file_name + ".pdf", cap=pdf_file_name)
 # %%
 # X --- Notify
 telsendmsg(
-    conf=tel_config, msg="global-plucking --- descriptive_plucking_ugap_viz: COMPLETED"
+    conf=tel_config, msg="global-plucking --- descriptive_plucking_ugap_quarterly_viz: COMPLETED"
 )
 
 # End

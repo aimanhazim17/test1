@@ -23,11 +23,18 @@ load_dotenv()
 path_data = "./data/"
 path_output = "./output/"
 path_ceic = "./ceic/"
+path_dep = "./dep/"
 tel_config = os.getenv("TEL_CONFIG")
 
 # %%
 # I --- Load data
-df = pd.read_parquet(path_data + "data_macro_monthly.parquet")
+df = pd.read_parquet(path_data + "data_macro_quarterly_urate.parquet")
+country_parameters = pd.read_csv(
+    path_dep + "x_multiplier_choices_by_country_quarterly.csv"
+)
+dict_country_x_multiplier = dict(
+    zip(country_parameters["country"], country_parameters["x_multiplier_choice"])
+)
 
 # %%
 # II --- Additional wrangling
@@ -38,7 +45,7 @@ df["urate_diff"] = df["urate"] - df.groupby("country")["urate"].shift(1)
 # III --- Compute urate floor
 # %%
 # Key parameters
-downturn_threshold_multiplier = 1  # x times standard deviation
+# downturn_threshold_multiplier = 1  # x times standard deviation
 col_choice = "urate"
 cols_to_compute_ceilings = [col_choice]
 col_ref = "urate"
@@ -49,6 +56,8 @@ for country in tqdm(list(df["country"].unique())):
     # restrict country
     df_sub = df[df["country"] == country].copy()
     df_sub = df_sub.reset_index(drop=True)
+    # draw out what threshold multiplier to use
+    downturn_threshold_multiplier = dict_country_x_multiplier[country]
     # which country
     print(
         "Now estimating for "
@@ -56,12 +65,12 @@ for country in tqdm(list(df["country"].unique())):
         + ", with threshold of X = "
         + str(round(downturn_threshold_multiplier * df_sub[col_choice].std(), 2))
     )
-    # compute ceiling
+    # compute ceiling (same function is fine, as the DNS algo is stepwise when looking backwards)
     df_ceiling_sub = compute_urate_floor(
         data=df_sub,
         levels_labels=cols_to_compute_ceilings,
         ref_level_label=col_ref,
-        time_label="month",
+        time_label="quarter",
         downturn_threshold=downturn_threshold_multiplier,
         bounds_timing_shift=-1,
         hard_bound=True,
@@ -82,7 +91,7 @@ df_ceiling["urate_gap"] = df_ceiling["urate"] - df_ceiling["urate_ceiling"]
 # Trim columns
 cols_keep = [
     "country",
-    "month",
+    "quarter",
     "urate_gap",
     "urate",
     "urate_ceiling",
@@ -95,12 +104,15 @@ df_ceiling = df_ceiling.reset_index(drop=True)
 # Display final dataframe
 df_ceiling
 # Save local copy
-df_ceiling.to_parquet(path_output + "plucking_ugap.parquet")
-df_ceiling.to_csv(path_output + "plucking_ugap.csv", index=False)
+df_ceiling.to_parquet(path_output + "plucking_ugap_quarterly.parquet")
+df_ceiling.to_csv(path_output + "plucking_ugap_quarterly.csv", index=False)
 
 # %%
 # X --- Notify
-telsendmsg(conf=tel_config, msg="global-plucking --- analysis_plucking_ugap: COMPLETED")
+telsendmsg(
+    conf=tel_config,
+    msg="global-plucking --- analysis_plucking_ugap_quarterly: COMPLETED",
+)
 
 # End
 print("\n----- Ran in " + "{:.0f}".format(time.time() - time_start) + " seconds -----")

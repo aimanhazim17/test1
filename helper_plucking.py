@@ -17,6 +17,7 @@ def compute_urate_floor(
     data,
     levels_labels,
     ref_level_label,
+    time_label,
     downturn_threshold,
     bounds_timing_shift,
     hard_bound,
@@ -49,7 +50,7 @@ def compute_urate_floor(
     list_troughs = []
 
     # Store list of months
-    list_time = [str(i) for i in list(df["month"])]
+    list_time = [str(i) for i in list(df[time_label])]
     list_indices = [i for i in list(df.index)]
 
     # Counter for if lower bound or point estimate is being calculated
@@ -253,9 +254,9 @@ def compute_urate_floor(
             print("Troughs in " + col_level + ": " + ", ".join(list_troughs))
 
             # Add columns indicating peaks and troughs
-            df.loc[df["month"].isin(list_peaks), col_peak] = 1
+            df.loc[df[time_label].isin(list_peaks), col_peak] = 1
             df[col_peak] = df[col_peak].fillna(0)
-            df.loc[df["month"].isin(list_troughs), col_trough] = 1
+            df.loc[df[time_label].isin(list_troughs), col_trough] = 1
             df[col_trough] = df[col_trough].fillna(0)
 
             # For Xbounds
