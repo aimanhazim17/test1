@@ -30,16 +30,43 @@ tel_config = os.getenv("TEL_CONFIG")
 # I --- Load data
 df = pd.read_parquet(path_data + "data_macro_quarterly_urate.parquet")
 country_parameters = pd.read_csv(
-    path_dep + "x_multiplier_choices_by_country_quarterly.csv"
+    path_dep + "parameters_by_country_quarterly.csv"
 )
 dict_country_x_multiplier = dict(
     zip(country_parameters["country"], country_parameters["x_multiplier_choice"])
+)
+dict_country_tlb = dict(
+    zip(country_parameters["country"], country_parameters["tlb"].fillna(''))
 )
 
 # %%
 # II --- Additional wrangling
 # First difference
 df["urate_diff"] = df["urate"] - df.groupby("country")["urate"].shift(1)
+# Trim countries
+list_countries_keep = [
+    "australia",
+    "malaysia",
+    "singapore",
+    "thailand",
+    "indonesia",
+    "philippines",
+    # "united_states",
+    "united_kingdom",
+    "germany",
+    "france",
+    "italy",
+    "japan",
+    "south_korea",
+    # "taiwan",
+    "hong_kong_sar_china_",
+    "india",
+    # "china",
+    "chile",
+    "mexico",
+    "brazil",
+]
+df = df[df["country"].isin(list_countries_keep)]
 
 # %%
 # III --- Compute urate floor
@@ -56,6 +83,14 @@ for country in tqdm(list(df["country"].unique())):
     # restrict country
     df_sub = df[df["country"] == country].copy()
     df_sub = df_sub.reset_index(drop=True)
+    # restrict time
+    tlb = dict_country_tlb[country]
+    if tlb == "":
+        pass
+    else:
+        df_sub["quarter"] = pd.to_datetime(df_sub["quarter"]).dt.to_period('q')
+        df_sub = df_sub[df_sub["quarter"] >= tlb]
+        df_sub["quarter"] = df_sub["quarter"].astype("str")
     # draw out what threshold multiplier to use
     downturn_threshold_multiplier = dict_country_x_multiplier[country]
     # which country
@@ -118,3 +153,5 @@ telsendmsg(
 print("\n----- Ran in " + "{:.0f}".format(time.time() - time_start) + " seconds -----")
 
 # %%
+# Notes: 
+# Tipping point for MYS is X_mult = 0.3668
