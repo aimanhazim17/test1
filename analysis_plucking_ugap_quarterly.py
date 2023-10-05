@@ -120,6 +120,8 @@ for country in tqdm(list(df["country"].unique())):
 # %%
 # Compute urate gap
 df_ceiling["urate_gap"] = df_ceiling["urate"] - df_ceiling["urate_ceiling"]
+# Compute urate gap as ratio (rather than arithmetic distance)
+df_ceiling["urate_gap_ratio"] = df_ceiling["urate"] / df_ceiling["urate_ceiling"]
 
 # %%
 # IV --- Output
@@ -128,6 +130,7 @@ cols_keep = [
     "country",
     "quarter",
     "urate_gap",
+    "urate_gap_ratio",
     "urate",
     "urate_ceiling",
     "urate_peak",

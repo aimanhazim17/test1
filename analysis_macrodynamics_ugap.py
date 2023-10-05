@@ -21,7 +21,7 @@ path_data = "./data/"
 path_output = "./output/"
 path_ceic = "./ceic/"
 tel_config = os.getenv("TEL_CONFIG")
-t_start_q = "2012Q1"
+t_start_q = "1991Q1"
 t_end_q = "2023Q1"
 
 # %%
@@ -29,13 +29,13 @@ t_end_q = "2023Q1"
 # Macro
 df = pd.read_parquet(path_data + "data_macro_quarterly.parquet")
 # UGap
-df_ugap = pd.read_parquet(path_output + "plucking_ugap.parquet")
-df_ugap["quarter"] = pd.to_datetime(df_ugap["month"]).dt.to_period("q")
-df_ugap = (
-    df_ugap.groupby(["country", "quarter"])[["urate_ceiling", "urate_gap"]]
-    .mean()
-    .reset_index(drop=False)
-)
+df_ugap = pd.read_parquet(path_output + "plucking_ugap_quarterly.parquet")
+# df_ugap["quarter"] = pd.to_datetime(df_ugap["month"]).dt.to_period("q")
+# df_ugap = (
+#     df_ugap.groupby(["country", "quarter"])[["urate_ceiling", "urate_gap"]]
+#     .mean()
+#     .reset_index(drop=False)
+# )
 df_ugap["quarter"] = df_ugap["quarter"].astype("str")
 # Merge
 df = df.merge(df_ugap, on=["country", "quarter"], how="outer", validate="one_to_one")
@@ -48,19 +48,19 @@ list_countries_keep = [
     "malaysia",
     "singapore",
     "thailand",
-    "indonesia",
-    "philippines",
-    # "united_states",
+    # "indonesia",  # no urate data
+    # "philippines",  # no urate data
+    # "united_states",  # problems with BER
     "united_kingdom",
     "germany",
     "france",
     "italy",
     "japan",
     "south_korea",
-    # "taiwan",
+    # "taiwan",  # not covered country
     "hong_kong_sar_china_",
     "india",
-    # "china",
+    # "china",  # special case
     "chile",
     "mexico",
     "brazil",
@@ -69,7 +69,7 @@ df = df[df["country"].isin(list_countries_keep)]
 # Transform
 cols_pretransformed = ["rgdp", "m2", "cpi", "corecpi", "maxgepu"]
 cols_levels = ["reer", "ber", "brent", "gepu"]
-cols_rate = ["stir", "ltir", "urate_ceiling", "urate_gap", "privdebt", "privdebt_bank"]
+cols_rate = ["stir", "ltir", "urate_ceiling", "urate_gap", "urate_gap_ratio", "privdebt", "privdebt_bank"]
 for col in cols_levels:
     df[col] = 100 * ((df[col] / df.groupby("country")[col].shift(4)) - 1)
 for col in cols_rate:
@@ -88,8 +88,9 @@ df = df.set_index(["country", "time"])
 # %%
 # II --- Analysis
 # Setup
-endog_base = ["brent", "privdebt", "stir", "ber", "urate_ceiling", "urate_gap", "corecpi"]
-exog_base = ["gepu", "maxgepu"]
+endog_base = ["privdebt", "urate_ceiling", "urate_gap_ratio", "corecpi", "stir", "reer"]
+# endog_base = ["privdebt", "urate_gap_ratio", "corecpi", "stir", "reer"]
+exog_base = ["brent", "gepu", "maxgepu"]
 # Estimate
 irf = lp.PanelLPX(
     data=df,
@@ -97,7 +98,7 @@ irf = lp.PanelLPX(
     X=exog_base,
     response=endog_base,
     horizon=16,
-    lags=1,
+    lags=4,
     varcov="kernel",
     ci_width=0.95,
 )
