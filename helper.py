@@ -687,18 +687,18 @@ def manual_irf_subplots_channels(
 
 
 def subplots_linecharts(
-        data: pd.DataFrame,
-        col_group: str,
-        cols_values: list[str],
-        cols_values_nice: list[str],
-        col_time: str,
-        annot_size: list[int],
-        font_size: list[int],
-        line_colours: list[str], 
-        line_dashes: list[str],
-        main_title: str,
-        maxrows: int,
-        maxcols: int,
+    data: pd.DataFrame,
+    col_group: str,
+    cols_values: list[str],
+    cols_values_nice: list[str],
+    col_time: str,
+    annot_size: list[int],
+    font_size: list[int],
+    line_colours: list[str],
+    line_dashes: list[str],
+    main_title: str,
+    maxrows: int,
+    maxcols: int,
 ):
     # Create titles first
     titles = []
@@ -719,8 +719,10 @@ def subplots_linecharts(
             showlegend_bool = True
         elif legend_count > 0:
             showlegend_bool = False
-        # Add line plots 
-        for col, col_nice, line_colour, line_dash in zip(cols_values, cols_values_nice, line_colours, line_dashes):
+        # Add line plots
+        for col, col_nice, line_colour, line_dash in zip(
+            cols_values, cols_values_nice, line_colours, line_dashes
+        ):
             fig.add_trace(
                 go.Scatter(
                     x=d[col_time].astype("str"),
@@ -744,6 +746,105 @@ def subplots_linecharts(
             nc = 1  # reset column
         # No further legends
         legend_count += 1
+    for annot in fig["layout"]["annotations"]:
+        annot["font"] = dict(size=annot_size, color="black")  # subplot title font size
+    fig.update_layout(
+        title=main_title,
+        # yaxis_title=y_title,
+        plot_bgcolor="white",
+        hovermode="x",
+        font=dict(color="black", size=font_size),
+        showlegend=True,
+        barmode="relative",
+        height=768,
+        width=1366,
+    )
+    # output
+    return fig
+
+
+def subplots_scatterplots(
+    data: pd.DataFrame,
+    col_group: str,
+    cols_x: list[str],
+    cols_y: list[str],
+    annot_size: list[int],
+    font_size: list[int],
+    marker_colours: list[str],
+    marker_sizes: list[int],
+    include_best_fit: bool,
+    best_fit_colours: list[str],
+    best_fit_widths: list[str],
+    main_title: str,
+    maxrows: int,
+    maxcols: int,
+):
+    # Create titles first
+    titles = []
+    for group in list(data[col_group].unique()):
+        titles = titles + [group]
+    maxr = maxrows
+    maxc = maxcols
+    fig = make_subplots(rows=maxr, cols=maxc, subplot_titles=titles)
+    nr = 1
+    nc = 1
+    # columns: shocks, rows: responses; move columns, then rows
+    for group in list(data[col_group].unique()):
+        # Data copy
+        d = data[(data[col_group] == group)].copy()
+        # Add scatter plots
+        for (
+            col_x,
+            col_y,
+            marker_colour,
+            marker_size,
+            best_fit_colour,
+            best_fit_width,
+        ) in zip(
+            cols_x,
+            cols_y,
+            marker_colours,
+            marker_sizes,
+            best_fit_colours,
+            best_fit_widths,
+        ):
+            fig.add_trace(
+                go.Scatter(
+                    x=d[col_x],
+                    y=d[col_y],
+                    mode="markers",
+                    marker=dict(color=marker_colour, size=marker_size),
+                    showlegend=False,
+                ),
+                row=nr,
+                col=nc,
+            )
+            if include_best_fit:
+                try:
+                    eqn_bfit = col_y + " ~ " + col_x
+                    est_bfit = smf.ols(eqn_bfit, data=d).fit()
+                    pred_bfit = est_bfit.predict()  # check if arguments are needed
+                    d["_pred_full"] = pred_bfit
+                    fig.add_trace(
+                        go.Scatter(
+                            x=d[col_x],
+                            y=d["_pred_full"],
+                            mode="lines",
+                            line=dict(color=best_fit_colour, width=best_fit_width),
+                            showlegend=False,
+                        )
+                    )
+                except:
+                    pass
+        # Move to next subplot
+        nc += 1
+        if nr > maxr:
+            raise NotImplementedError(
+                "More subplots than allowed by dimension of main plot!"
+            )
+        if nc > maxc:
+            nr += 1  # next row
+            nc = 1  # reset column
     for annot in fig["layout"]["annotations"]:
         annot["font"] = dict(size=annot_size, color="black")  # subplot title font size
     fig.update_layout(
