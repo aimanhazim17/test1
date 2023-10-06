@@ -70,7 +70,7 @@ df = df.merge(df_ugap, on=["country", "quarter"], how="outer", validate="one_to_
 # df = df[df["country"].isin(list_countries_keep)]
 countries_asean4 = ["malaysia", "thailand", "indonesia", "philippines"]
 countries_asianie = ["singapore", "south_korea", "hong_kong_sar_china_"]
-countries_bigemerging = ["china", "india", "mexico", "brazil", "chile"]
+countries_bigemerging = ["china", "mexico", "brazil", "chile"]
 countries_adv = [
     "united_states",
     "japan",
@@ -94,7 +94,7 @@ nested_list_country_groups = [
 nice_group_names_by_country_groups = ["ASEAN-4", "Asian NIEs", "Major EMs", "AEs"]
 snakecase_group_names_by_country_groups = ["asean4", "asianie", "bigemerging", "adv"]
 rows_by_country_groups = [2, 2, 2, 3]
-cols_by_country_groups = [2, 2, 3, 3]
+cols_by_country_groups = [2, 2, 2, 3]
 
 # %%
 # III --- Plot charts

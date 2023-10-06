@@ -50,7 +50,7 @@ list_countries_keep = [
     "thailand",
     # "indonesia",  # no urate data
     # "philippines",  # no urate data
-    # "united_states",  # problems with BER
+    "united_states",  # problems with BER
     "united_kingdom",
     "germany",
     "france",
@@ -59,8 +59,8 @@ list_countries_keep = [
     "south_korea",
     # "taiwan",  # not covered country
     "hong_kong_sar_china_",
-    "india",
-    # "china",  # special case
+    # "india",  # no urate data
+    "china",  # special case
     "chile",
     "mexico",
     "brazil",
@@ -88,8 +88,8 @@ df = df.set_index(["country", "time"])
 # %%
 # II --- Analysis
 # Setup
-endog_base = ["privdebt", "urate_ceiling", "urate_gap_ratio", "corecpi", "stir", "reer"]
-# endog_base = ["privdebt", "urate_gap_ratio", "corecpi", "stir", "reer"]
+# endog_base = ["privdebt", "urate_ceiling", "urate_gap_ratio", "corecpi", "stir", "reer"]
+endog_base = ["privdebt", "urate_gap_ratio", "corecpi", "stir", "reer"]
 exog_base = ["brent", "gepu", "maxgepu"]
 # Estimate
 irf = lp.PanelLPX(
@@ -114,11 +114,11 @@ fig_irf = lp.IRFPlot(
     save_pic=False,
     out_path="",
     out_name="",
-    annot_size=7,
-    font_size=8,
+    annot_size=11,
+    font_size=9,
 )
 file_name = path_output + "macrodynamics_ugap_lp_irf"
-fig_irf.write_image(file_name + ".png")
+fig_irf.write_image(file_name + ".png", height=1080, width=1920)
 telsendimg(conf=tel_config, path=file_name + ".png", cap=file_name)
 
 # %%
