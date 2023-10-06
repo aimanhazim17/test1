@@ -123,7 +123,7 @@ for col_y, col_y_nice, plot_colour in zip(cols_y, cols_y_nice, plot_colours):
             annot_size=12,
             font_size=12,
             marker_colours=[plot_colour],
-            marker_sizes=[8],
+            marker_sizes=[6],
             include_best_fit=True,
             best_fit_colours=[plot_colour],
             best_fit_widths=[2],

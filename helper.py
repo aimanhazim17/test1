@@ -821,21 +821,29 @@ def subplots_scatterplots(
             )
             if include_best_fit:
                 try:
+                    # create copy of entity-specific data
+                    d_forbestfit = d.copy()
+                    # drop rows that are empty
+                    d_forbestfit = d_forbestfit[[col_y, col_x]].dropna(axis=0)
+                    # linear regression
                     eqn_bfit = col_y + " ~ " + col_x
-                    est_bfit = smf.ols(eqn_bfit, data=d).fit()
+                    est_bfit = smf.ols(eqn_bfit, data=d_forbestfit).fit()
                     pred_bfit = est_bfit.predict()  # check if arguments are needed
-                    d["_pred_full"] = pred_bfit
+                    d_forbestfit["_pred_full"] = pred_bfit
+                    # plot best fit line
                     fig.add_trace(
                         go.Scatter(
-                            x=d[col_x],
-                            y=d["_pred_full"],
+                            x=d_forbestfit[col_x],
+                            y=d_forbestfit["_pred_full"],
                             mode="lines",
                             line=dict(color=best_fit_colour, width=best_fit_width),
                             showlegend=False,
-                        )
+                        ),
+                        row=nr,
+                        col=nc,
                     )
                 except:
-                    pass
+                    print("Error for entity " + str(group) + ", skipping to next")
         # Move to next subplot
         nc += 1
         if nr > maxr:
