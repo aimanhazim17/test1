@@ -20,7 +20,7 @@ from dotenv import load_dotenv
 from tqdm import tqdm
 
 load_dotenv()
-plt.switch_backend("agg")
+plt.switch_backend("agg")  # agg
 
 
 # --- Notifications
@@ -236,6 +236,153 @@ def estimate_its_arx(
 
 # --- Linear regressions
 
+
+def reg_ols(
+        df: pd.DataFrame,
+        eqn: str
+):
+    # Work on copy
+    d = df.copy()
+
+    # Estimate model
+    mod = smf.ols(formula=eqn, data=d)
+    res = mod.fit(cov_type='HC3')
+    print(res.summary())
+
+    # Return estimated parameters
+    params_table = pd.concat([res.params, res.HC3_se], axis=1)
+    params_table.columns = ['Parameter', 'SE']
+    params_table['LowerCI'] = params_table['Parameter'] - 1.96 * params_table['SE']
+    params_table['UpperCI'] = params_table['Parameter'] + 1.96 * params_table['SE']
+
+    del params_table['SE']
+
+    # Return joint test statistics
+    joint_teststats = pd.DataFrame(
+        {'F-Test': [res.fvalue, res.f_pvalue], }
+    )
+    joint_teststats = joint_teststats.transpose()
+    joint_teststats.columns = ['F', 'P-Value']
+
+    # Regression details
+    reg_det = pd.DataFrame(
+        {'Observations': [res.nobs],
+         'DF Residuals': [res.df_resid]}
+    )
+    reg_det = reg_det.transpose()
+    reg_det.columns = ['Number']
+
+    # Output
+    return mod, res, params_table, joint_teststats, reg_det
+
+
+def fe_reg(
+        df: pd.DataFrame,
+        y_col: str,
+        x_cols: list,
+        i_col: str,
+        t_col: str,
+        fixed_effects: bool,
+        time_effects: bool,
+        cov_choice: str,
+):
+    # Work on copy
+    d = df.copy()
+    d = d.set_index([i_col, t_col])
+
+    # Create eqn
+    if not fixed_effects and not time_effects:
+        eqn = y_col + '~' + '+'.join(x_cols)
+    if fixed_effects and not time_effects:
+        eqn = y_col + '~' + '+'.join(x_cols) + '+EntityEffects'
+    if time_effects and not fixed_effects:
+        eqn = y_col + '~' + '+'.join(x_cols) + '+TimeEffects'
+    if fixed_effects and time_effects:
+        eqn = y_col + '~' + '+'.join(x_cols) + '+EntityEffects+TimeEffects'
+
+    # Estimate model
+    mod = PanelOLS.from_formula(formula=eqn, data=d)
+    res = mod.fit(cov_type=cov_choice)
+    print(res.summary)
+
+    # Return estimated parameters
+    params_table = pd.concat([res.params, res.std_errors], axis=1)
+    params_table.columns = ['Parameter', 'SE']
+    params_table['LowerCI'] = params_table['Parameter'] - 1.96 * params_table['SE']
+    params_table['UpperCI'] = params_table['Parameter'] + 1.96 * params_table['SE']
+
+    del params_table['SE']
+
+    # Return joint test statistics
+    joint_teststats = pd.DataFrame(
+        {'F-Test (Poolability)': [res.f_pooled.stat, res.f_pooled.pval],
+         'F-Test (Naive)': [res.f_statistic.stat, res.f_statistic.pval],
+         'F-Test (Robust)': [res.f_statistic_robust.stat, res.f_statistic_robust.pval]}
+    )
+    joint_teststats = joint_teststats.transpose()
+    joint_teststats.columns = ['F', 'P-Value']
+
+    # Regression details
+    reg_det = pd.DataFrame(
+        {'Observations': [res.nobs],
+         'Entities': [res.entity_info.total],
+         'Time Periods': [res.time_info.total]}
+    )
+    reg_det = reg_det.transpose()
+    reg_det.columns = ['Number']
+
+    # Output
+    return mod, res, params_table, joint_teststats, reg_det
+
+
+def re_reg(
+        df: pd.DataFrame,
+        y_col: str,
+        x_cols: list,
+        i_col: str,
+        t_col: str,
+        cov_choice: str,
+):
+    # Work on copy
+    d = df.copy()
+    d = d.set_index([i_col, t_col])
+
+    # Create eqn
+    eqn = y_col + '~' + '1 +' + '+'.join(x_cols)
+
+    # Estimate model
+    mod = RandomEffects.from_formula(formula=eqn, data=d)
+    res = mod.fit(cov_type=cov_choice)
+    print(res.summary)
+
+    # Return estimated parameters
+    params_table = pd.concat([res.params, res.std_errors], axis=1)
+    params_table.columns = ['Parameter', 'SE']
+    params_table['LowerCI'] = params_table['Parameter'] - 1.96 * params_table['SE']
+    params_table['UpperCI'] = params_table['Parameter'] + 1.96 * params_table['SE']
+
+    del params_table['SE']
+
+    # Return joint test statistics
+    joint_teststats = pd.DataFrame(
+        {'F-Test (Naive)': [res.f_statistic.stat, res.f_statistic.pval],
+         'F-Test (Robust)': [res.f_statistic_robust.stat, res.f_statistic_robust.pval]}
+    )
+    joint_teststats = joint_teststats.transpose()
+    joint_teststats.columns = ['F', 'P-Value']
+
+    # Regression details
+    reg_det = pd.DataFrame(
+        {'Observations': [res.nobs],
+         'Entities': [res.entity_info.total],
+         'Time Periods': [res.time_info.total]}
+    )
+    reg_det = reg_det.transpose()
+    reg_det.columns = ['Number']
+
+    # Output
+    return mod, res, params_table, joint_teststats, reg_det
+
 # --- TIME SERIES MODELS
 
 
@@ -280,6 +427,7 @@ def heatmap(
     y_fontsize: float,
     x_fontsize: float,
     title_fontsize: float,
+    annot_fontsize: float
 ):
     fig = plt.figure()
     sns.heatmap(
@@ -288,7 +436,7 @@ def heatmap(
         annot=show_annot,
         cmap=colourmap,
         center=0,
-        annot_kws={"size": 9},  # 9, 12, 16, 20, 24, 28
+        annot_kws={"size": annot_fontsize},  # 9, 12, 16, 20, 24, 28
         vmin=lb,
         vmax=ub,
         xticklabels=True,
@@ -808,10 +956,15 @@ def subplots_scatterplots(
             best_fit_colours,
             best_fit_widths,
         ):
+            # create another copy of only variables concerned
+            d_fordots = d.copy()
+            # drop empty rows
+            d_fordots = d_fordots[[col_y, col_x]].dropna(axis=0)
+            # scatterplot
             fig.add_trace(
                 go.Scatter(
-                    x=d[col_x],
-                    y=d[col_y],
+                    x=d_fordots[col_x],
+                    y=d_fordots[col_y],
                     mode="markers",
                     marker=dict(color=marker_colour, size=marker_size),
                     showlegend=False,

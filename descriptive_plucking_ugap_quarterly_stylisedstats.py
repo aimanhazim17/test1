@@ -1,7 +1,13 @@
 # %%
 import pandas as pd
 import numpy as np
-from helper import telsendfiles, telsendimg, telsendmsg, subplots_scatterplots, pil_img2pdf
+from helper import (
+    telsendfiles,
+    telsendimg,
+    telsendmsg,
+    subplots_scatterplots,
+    pil_img2pdf,
+)
 from helper_plucking import compute_urate_floor
 from datetime import date, timedelta
 import statsmodels.formula.api as smf
@@ -68,7 +74,7 @@ df = df.merge(df_ugap, on=["country", "quarter"], how="outer", validate="one_to_
 #     "brazil",
 # ]
 # df = df[df["country"].isin(list_countries_keep)]
-countries_asean4 = ["malaysia", "thailand", "indonesia", "philippines"]
+countries_asean4 = ["malaysia", "thailand"]  # "indonesia", "philippines"]
 countries_asianie = ["singapore", "south_korea", "hong_kong_sar_china_"]
 countries_bigemerging = ["china", "mexico", "brazil", "chile"]
 countries_adv = [
@@ -94,7 +100,7 @@ nested_list_country_groups = [
 nice_group_names_by_country_groups = ["ASEAN-4", "Asian NIEs", "Major EMs", "AEs"]
 snakecase_group_names_by_country_groups = ["asean4", "asianie", "bigemerging", "adv"]
 rows_by_country_groups = [2, 2, 2, 3]
-cols_by_country_groups = [2, 2, 2, 3]
+cols_by_country_groups = [1, 2, 2, 3]
 
 # %%
 # III --- Plot charts
@@ -127,12 +133,20 @@ for col_y, col_y_nice, plot_colour in zip(cols_y, cols_y_nice, plot_colours):
             include_best_fit=True,
             best_fit_colours=[plot_colour],
             best_fit_widths=[2],
-            main_title="Quarterly estimated U-rate floor and " + col_y_nice + " in "
+            main_title="Quarterly estimated U-rate gap and "
+            + col_y_nice
+            + " in "
             + nice_group_name,
             maxrows=n_rows,
             maxcols=n_cols,
         )
-        file_name = path_output + "stylised_stats_plucking_ugap_quarterly_" + col_y + "_" + snakecase_group_name
+        file_name = (
+            path_output
+            + "stylised_stats_plucking_ugap_quarterly_"
+            + col_y
+            + "_"
+            + snakecase_group_name
+        )
         fig_urate_and_ceiling.write_image(file_name + ".png")
         # telsendimg(
         #     conf=tel_config,

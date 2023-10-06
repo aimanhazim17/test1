@@ -45,9 +45,9 @@ df = df.merge(df_ugap, on=["country", "quarter"], how="outer", validate="one_to_
 # Trim countries
 list_countries_keep = [
     "australia",
-    "malaysia",
+    # "malaysia",
     "singapore",
-    "thailand",
+    # "thailand",
     # "indonesia",  # no urate data
     # "philippines",  # no urate data
     "united_states",  # problems with BER
@@ -60,10 +60,10 @@ list_countries_keep = [
     # "taiwan",  # not covered country
     "hong_kong_sar_china_",
     # "india",  # no urate data
-    "china",  # special case
-    "chile",
-    "mexico",
-    "brazil",
+    # "china",  # special case
+    # "chile",
+    # "mexico",
+    # "brazil",
 ]
 df = df[df["country"].isin(list_countries_keep)]
 # Transform
@@ -109,7 +109,7 @@ fig_irf = lp.IRFPlot(
     shock=endog_base,
     n_columns=len(endog_base),
     n_rows=len(endog_base),
-    maintitle="Local Projections Model: Impulse Response Functions",
+    maintitle="Local Projections Model: Impulse Response Functions (Advanced Economies Only)",
     show_fig=False,
     save_pic=False,
     out_path="",
@@ -117,14 +117,14 @@ fig_irf = lp.IRFPlot(
     annot_size=14,
     font_size=16,
 )
-file_name = path_output + "macrodynamics_ugap_lp_irf"
+file_name = path_output + "macrodynamics_ugap_lp_irf_ae"
 fig_irf.write_image(file_name + ".png", height=1080, width=1920)
 telsendimg(conf=tel_config, path=file_name + ".png", cap=file_name)
 
 # %%
 # X --- Notify
 telsendmsg(
-    conf=tel_config, msg="global-plucking --- analysis_macrodynamics_ugap: COMPLETED"
+    conf=tel_config, msg="global-plucking --- analysis_macrodynamics_ugap_ae: COMPLETED"
 )
 
 # End
