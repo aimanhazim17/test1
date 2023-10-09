@@ -237,54 +237,50 @@ def estimate_its_arx(
 # --- Linear regressions
 
 
-def reg_ols(
-        df: pd.DataFrame,
-        eqn: str
-):
+def reg_ols(df: pd.DataFrame, eqn: str):
     # Work on copy
     d = df.copy()
 
     # Estimate model
     mod = smf.ols(formula=eqn, data=d)
-    res = mod.fit(cov_type='HC3')
+    res = mod.fit(cov_type="HC3")
     print(res.summary())
 
     # Return estimated parameters
     params_table = pd.concat([res.params, res.HC3_se], axis=1)
-    params_table.columns = ['Parameter', 'SE']
-    params_table['LowerCI'] = params_table['Parameter'] - 1.96 * params_table['SE']
-    params_table['UpperCI'] = params_table['Parameter'] + 1.96 * params_table['SE']
+    params_table.columns = ["Parameter", "SE"]
+    params_table["LowerCI"] = params_table["Parameter"] - 1.96 * params_table["SE"]
+    params_table["UpperCI"] = params_table["Parameter"] + 1.96 * params_table["SE"]
 
-    del params_table['SE']
+    del params_table["SE"]
 
     # Return joint test statistics
     joint_teststats = pd.DataFrame(
-        {'F-Test': [res.fvalue, res.f_pvalue], }
+        {
+            "F-Test": [res.fvalue, res.f_pvalue],
+        }
     )
     joint_teststats = joint_teststats.transpose()
-    joint_teststats.columns = ['F', 'P-Value']
+    joint_teststats.columns = ["F", "P-Value"]
 
     # Regression details
-    reg_det = pd.DataFrame(
-        {'Observations': [res.nobs],
-         'DF Residuals': [res.df_resid]}
-    )
+    reg_det = pd.DataFrame({"Observations": [res.nobs], "DF Residuals": [res.df_resid]})
     reg_det = reg_det.transpose()
-    reg_det.columns = ['Number']
+    reg_det.columns = ["Number"]
 
     # Output
     return mod, res, params_table, joint_teststats, reg_det
 
 
 def fe_reg(
-        df: pd.DataFrame,
-        y_col: str,
-        x_cols: list,
-        i_col: str,
-        t_col: str,
-        fixed_effects: bool,
-        time_effects: bool,
-        cov_choice: str,
+    df: pd.DataFrame,
+    y_col: str,
+    x_cols: list,
+    i_col: str,
+    t_col: str,
+    fixed_effects: bool,
+    time_effects: bool,
+    cov_choice: str,
 ):
     # Work on copy
     d = df.copy()
@@ -292,13 +288,13 @@ def fe_reg(
 
     # Create eqn
     if not fixed_effects and not time_effects:
-        eqn = y_col + '~' + '+'.join(x_cols)
+        eqn = y_col + "~" + "+".join(x_cols)
     if fixed_effects and not time_effects:
-        eqn = y_col + '~' + '+'.join(x_cols) + '+EntityEffects'
+        eqn = y_col + "~" + "+".join(x_cols) + "+EntityEffects"
     if time_effects and not fixed_effects:
-        eqn = y_col + '~' + '+'.join(x_cols) + '+TimeEffects'
+        eqn = y_col + "~" + "+".join(x_cols) + "+TimeEffects"
     if fixed_effects and time_effects:
-        eqn = y_col + '~' + '+'.join(x_cols) + '+EntityEffects+TimeEffects'
+        eqn = y_col + "~" + "+".join(x_cols) + "+EntityEffects+TimeEffects"
 
     # Estimate model
     mod = PanelOLS.from_formula(formula=eqn, data=d)
@@ -307,48 +303,55 @@ def fe_reg(
 
     # Return estimated parameters
     params_table = pd.concat([res.params, res.std_errors], axis=1)
-    params_table.columns = ['Parameter', 'SE']
-    params_table['LowerCI'] = params_table['Parameter'] - 1.96 * params_table['SE']
-    params_table['UpperCI'] = params_table['Parameter'] + 1.96 * params_table['SE']
+    params_table.columns = ["Parameter", "SE"]
+    params_table["LowerCI"] = params_table["Parameter"] - 1.96 * params_table["SE"]
+    params_table["UpperCI"] = params_table["Parameter"] + 1.96 * params_table["SE"]
 
-    del params_table['SE']
+    del params_table["SE"]
 
     # Return joint test statistics
     joint_teststats = pd.DataFrame(
-        {'F-Test (Poolability)': [res.f_pooled.stat, res.f_pooled.pval],
-         'F-Test (Naive)': [res.f_statistic.stat, res.f_statistic.pval],
-         'F-Test (Robust)': [res.f_statistic_robust.stat, res.f_statistic_robust.pval]}
+        {
+            "F-Test (Poolability)": [res.f_pooled.stat, res.f_pooled.pval],
+            "F-Test (Naive)": [res.f_statistic.stat, res.f_statistic.pval],
+            "F-Test (Robust)": [
+                res.f_statistic_robust.stat,
+                res.f_statistic_robust.pval,
+            ],
+        }
     )
     joint_teststats = joint_teststats.transpose()
-    joint_teststats.columns = ['F', 'P-Value']
+    joint_teststats.columns = ["F", "P-Value"]
 
     # Regression details
     reg_det = pd.DataFrame(
-        {'Observations': [res.nobs],
-         'Entities': [res.entity_info.total],
-         'Time Periods': [res.time_info.total]}
+        {
+            "Observations": [res.nobs],
+            "Entities": [res.entity_info.total],
+            "Time Periods": [res.time_info.total],
+        }
     )
     reg_det = reg_det.transpose()
-    reg_det.columns = ['Number']
+    reg_det.columns = ["Number"]
 
     # Output
     return mod, res, params_table, joint_teststats, reg_det
 
 
 def re_reg(
-        df: pd.DataFrame,
-        y_col: str,
-        x_cols: list,
-        i_col: str,
-        t_col: str,
-        cov_choice: str,
+    df: pd.DataFrame,
+    y_col: str,
+    x_cols: list,
+    i_col: str,
+    t_col: str,
+    cov_choice: str,
 ):
     # Work on copy
     d = df.copy()
     d = d.set_index([i_col, t_col])
 
     # Create eqn
-    eqn = y_col + '~' + '1 +' + '+'.join(x_cols)
+    eqn = y_col + "~" + "1 +" + "+".join(x_cols)
 
     # Estimate model
     mod = RandomEffects.from_formula(formula=eqn, data=d)
@@ -357,31 +360,39 @@ def re_reg(
 
     # Return estimated parameters
     params_table = pd.concat([res.params, res.std_errors], axis=1)
-    params_table.columns = ['Parameter', 'SE']
-    params_table['LowerCI'] = params_table['Parameter'] - 1.96 * params_table['SE']
-    params_table['UpperCI'] = params_table['Parameter'] + 1.96 * params_table['SE']
+    params_table.columns = ["Parameter", "SE"]
+    params_table["LowerCI"] = params_table["Parameter"] - 1.96 * params_table["SE"]
+    params_table["UpperCI"] = params_table["Parameter"] + 1.96 * params_table["SE"]
 
-    del params_table['SE']
+    del params_table["SE"]
 
     # Return joint test statistics
     joint_teststats = pd.DataFrame(
-        {'F-Test (Naive)': [res.f_statistic.stat, res.f_statistic.pval],
-         'F-Test (Robust)': [res.f_statistic_robust.stat, res.f_statistic_robust.pval]}
+        {
+            "F-Test (Naive)": [res.f_statistic.stat, res.f_statistic.pval],
+            "F-Test (Robust)": [
+                res.f_statistic_robust.stat,
+                res.f_statistic_robust.pval,
+            ],
+        }
     )
     joint_teststats = joint_teststats.transpose()
-    joint_teststats.columns = ['F', 'P-Value']
+    joint_teststats.columns = ["F", "P-Value"]
 
     # Regression details
     reg_det = pd.DataFrame(
-        {'Observations': [res.nobs],
-         'Entities': [res.entity_info.total],
-         'Time Periods': [res.time_info.total]}
+        {
+            "Observations": [res.nobs],
+            "Entities": [res.entity_info.total],
+            "Time Periods": [res.time_info.total],
+        }
     )
     reg_det = reg_det.transpose()
-    reg_det.columns = ['Number']
+    reg_det.columns = ["Number"]
 
     # Output
     return mod, res, params_table, joint_teststats, reg_det
+
 
 # --- TIME SERIES MODELS
 
@@ -427,7 +438,7 @@ def heatmap(
     y_fontsize: float,
     x_fontsize: float,
     title_fontsize: float,
-    annot_fontsize: float
+    annot_fontsize: float,
 ):
     fig = plt.figure()
     sns.heatmap(
@@ -591,6 +602,68 @@ def boxplot_time(
         width=1366,
     )
     fig.update_xaxes(categoryorder="category ascending")
+    # output
+    return fig
+
+
+def scatterplot(
+    data: pd.DataFrame,
+    y_col: str,
+    y_col_nice: str,
+    x_col: str,
+    x_col_nice: str,
+    marker_colour: str,
+    marker_size: int,
+    best_fit_colour: str,
+    best_fit_width: int,
+    main_title: str,
+):
+    # generate figure
+    fig = go.Figure()
+    # some label changing
+    d_formarkers = data.copy()
+    d_formarkers = d_formarkers.rename(columns={y_col: y_col_nice, x_col: x_col_nice})
+    # add markers
+    fig.add_trace(
+        go.Scatter(
+            x=d_formarkers[x_col_nice],
+            y=d_formarkers[y_col_nice],
+            mode="markers",
+            marker=dict(color=marker_colour, size=marker_size),
+            showlegend=False,
+        )
+    )
+    # add best fit line
+    try:
+        # create copy of entity-specific data
+        d_forbestfit = data.copy()
+        # drop rows that are empty
+        d_forbestfit = d_forbestfit[[y_col, x_col]].dropna(axis=0)
+        # linear regression
+        eqn_bfit = y_col + " ~ " + x_col
+        est_bfit = smf.ols(eqn_bfit, data=d_forbestfit).fit()
+        pred_bfit = est_bfit.predict()  # check if arguments are needed
+        d_forbestfit["_pred_full"] = pred_bfit
+        # plot best fit line
+        fig.add_trace(
+            go.Scatter(
+                x=d_forbestfit[x_col],
+                y=d_forbestfit["_pred_full"],
+                mode="lines",
+                line=dict(color=best_fit_colour, width=best_fit_width),
+                showlegend=False,
+            )
+        )
+    except:
+        print("Error when estimating best fit line, please inspect dataframe")
+    # layouts
+    fig.update_layout(
+        title=main_title,
+        plot_bgcolor="white",
+        font=dict(color="black", size=16),
+        height=768,
+        width=1366,
+    )
     # output
     return fig
 
