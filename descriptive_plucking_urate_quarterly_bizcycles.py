@@ -51,8 +51,8 @@ list_countries_keep = [
     "malaysia",
     "singapore",
     "thailand",
-    # "indonesia",
-    # "philippines",
+    "indonesia",
+    "philippines",
     "united_states",
     "united_kingdom",
     "germany",
@@ -62,8 +62,8 @@ list_countries_keep = [
     "south_korea",
     # "taiwan",
     "hong_kong_sar_china_",
-    # "india",
-    "china",
+    "india",
+    # "china",
     "chile",
     "mexico",
     "brazil",
@@ -188,8 +188,8 @@ def compute_bizcycle_paces(data, entities_label, rows_per_epi):
 df, df_expcon, df_conexp = compute_bizcycle_paces(
     data=df, entities_label="country", rows_per_epi=None
 )
-df_expcon_avg = df_expcon.groupby("country").agg("mean")
-df_conexp_avg = df_conexp.groupby("country").agg("mean")
+# df_expcon_avg = df_expcon.groupby("country").agg("mean")
+# df_conexp_avg = df_conexp.groupby("country").agg("mean")
 
 
 # %%

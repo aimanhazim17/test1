@@ -17,6 +17,8 @@ tel_config = os.getenv("TEL_CONFIG")
 import analysis_plucking_ugap_quarterly
 import descriptive_plucking_ugap_quarterly_viz
 # %%
+import descriptive_plucking_ugap_quarterly_stylisedstats
+# %%
 import analysis_macrodynamics_ugap
 import analysis_macrodynamics_ugap_ae
 import analysis_macrodynamics_ugap_eme

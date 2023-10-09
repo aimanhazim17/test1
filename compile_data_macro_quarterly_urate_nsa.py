@@ -1,8 +1,16 @@
 # %%
+# Only for a few fringe countries with data issues
+# %%
 import pandas as pd
 from datetime import date, timedelta
 import re
-from helper import telsendmsg, telsendimg, telsendfiles, get_data_from_ceic
+from helper import (
+    telsendmsg,
+    telsendimg,
+    telsendfiles,
+    get_data_from_ceic,
+    x13_deseasonalise,
+)
 import statsmodels.tsa.api as smt
 from statsmodels.tsa.ar_model import ar_select_order
 from tqdm import tqdm
@@ -24,7 +32,7 @@ t_start = date(1947, 1, 1)
 
 # %%
 # I --- Load data from CEIC
-seriesids_all = pd.read_csv(path_ceic + "ceic_macro_quarterly_urate" + ".csv")
+seriesids_all = pd.read_csv(path_ceic + "ceic_macro_quarterly_urate_nsa" + ".csv")
 count_col = 0
 for col in list(seriesids_all.columns):
     # subset column by column
@@ -56,31 +64,48 @@ for col in list(seriesids_all.columns):
 df = df.reset_index(drop=True)
 # save interim copy
 df["quarter"] = df["quarter"].astype("str")
-df.to_parquet(path_data + "data_macro_quarterly_urate_raw" + ".parquet")
+df.to_parquet(path_data + "data_macro_quarterly_urate_nsa_raw" + ".parquet")
 
 # %%
 # II --- Wrangle
 # Read downloaded data
-df = pd.read_parquet(path_data + "data_macro_quarterly_urate_raw" + ".parquet")
-# Read manually seasonally adjusted data
-df_spec = pd.read_parquet(path_data + "data_macro_quarterly_urate_nsa_sadjusted" + ".parquet")
+df = pd.read_parquet(path_data + "data_macro_quarterly_urate_nsa_raw" + ".parquet")
 # Set groupby cols
 cols_groups = ["country", "quarter"]
-# Merge
-df = pd.concat([df, df_spec], axis=0)
 # Sort
 df = df.sort_values(by=cols_groups, ascending=[True, True])
+# Drop NAs
+df = df.dropna(subset=["urate"], axis=0)
 # Reset indices
 df = df.reset_index(drop=True)
+# Now seasonally adjust the series
+df_sa = pd.DataFrame(columns=cols_groups + ["urate"])
+for country in list(df["country"].unique()):
+    # subset
+    df_sub = df[df["country"] == country].copy()
+    # set periodindex
+    df_sub["quarter"] = pd.to_datetime(df_sub["quarter"]).dt.to_period("q")
+    df_sub = df_sub.set_index("quarter")
+    # adjust
+    df_sub = x13_deseasonalise(
+        data=df_sub,
+        cols_to_adj=["urate"]
+    )
+    # wrangle
+    df_sub = df_sub.reset_index(drop=False)
+    df_sub["quarter"] = df_sub["quarter"].astype("str")
+    # merge
+    df_sa = pd.concat([df_sa, df_sub], axis=0)
 
-# %%
-# III --- Output
 # Save processed output
-df.to_parquet(path_data + "data_macro_quarterly_urate" + ".parquet")
+df_sa.to_parquet(path_data + "data_macro_quarterly_urate_nsa_sadjusted" + ".parquet")
 
 # %%
 # X --- Notify
-telsendmsg(conf=tel_config, msg="global-plucking --- compile_data_macro_quarterly_urate: COMPLETED")
+telsendmsg(
+    conf=tel_config,
+    msg="global-plucking --- compile_data_macro_quarterly_urate_nsa: COMPLETED",
+)
 
 # End
 print("\n----- Ran in " + "{:.0f}".format(time.time() - time_start) + " seconds -----")

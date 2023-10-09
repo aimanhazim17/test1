@@ -41,6 +41,24 @@ def telsendmsg(conf="", msg=""):
 
 
 # --- Data
+def x13_deseasonalise(
+        data: pd.DataFrame,
+        cols_to_adj: list[str]
+):
+    # deep copy
+    df = data.copy()
+    # adjust column by column
+    for col in cols_to_adj:
+        # run x13
+        res = smt.x13_arima_analysis(
+            endog=df[col]
+        )
+        # extract the deseasonalised series
+        df[col] = res.seasadj
+    # output
+    return df
+
+
 def get_data_from_api_ceic(
     series_ids: list[float],
     series_names: list[str],

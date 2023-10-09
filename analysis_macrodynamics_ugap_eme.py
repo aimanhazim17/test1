@@ -48,8 +48,8 @@ list_countries_keep = [
     "malaysia",
     # "singapore",
     "thailand",
-    # "indonesia",  # no urate data
-    # "philippines",  # no urate data
+    "indonesia",  # no urate data
+    "philippines",  # no urate data
     # "united_states",  # problems with BER
     # "united_kingdom",
     # "germany",
@@ -59,8 +59,8 @@ list_countries_keep = [
     # "south_korea",
     # "taiwan",  # not covered country
     # "hong_kong_sar_china_",
-    # "india",  # no urate data
-    "china",  # special case
+    "india",  # no urate data
+    # "china",  # special case
     "chile",
     "mexico",
     "brazil",

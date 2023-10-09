@@ -60,7 +60,7 @@ list_countries_keep = [
     "south_korea",
     # "taiwan",
     "hong_kong_sar_china_",
-    # "india",
+    "india",
     "china",
     "chile",
     "mexico",
