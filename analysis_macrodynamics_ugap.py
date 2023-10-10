@@ -37,8 +37,12 @@ df_ugap = pd.read_parquet(path_output + "plucking_ugap_quarterly.parquet")
 #     .reset_index(drop=False)
 # )
 df_ugap["quarter"] = df_ugap["quarter"].astype("str")
+# Expected inflation
+df_expcpi = pd.read_parquet(path_data + "data_macro_quarterly_expcpi.parquet")
 # Merge
 df = df.merge(df_ugap, on=["country", "quarter"], how="outer", validate="one_to_one")
+df = df.merge(df_expcpi, on=["country", "quarter"], how="outer", validate="one_to_one")
+
 
 # %%
 # II --- Pre-analysis wrangling
@@ -67,7 +71,7 @@ list_countries_keep = [
 ]
 df = df[df["country"].isin(list_countries_keep)]
 # Transform
-cols_pretransformed = ["rgdp", "m2", "cpi", "corecpi", "maxgepu"]
+cols_pretransformed = ["rgdp", "m2", "cpi", "corecpi", "maxgepu", "expcpi"]
 cols_levels = ["reer", "ber", "brent", "gepu"]
 cols_rate = ["stir", "ltir", "urate_ceiling", "urate_gap", "urate_gap_ratio", "privdebt", "privdebt_bank"]
 for col in cols_levels:
@@ -89,7 +93,8 @@ df = df.set_index(["country", "time"])
 # II --- Analysis
 # Setup
 # endog_base = ["privdebt", "urate_ceiling", "urate_gap_ratio", "corecpi", "stir", "reer"]
-endog_base = ["privdebt", "urate_gap_ratio", "corecpi", "stir", "reer"]
+endog_base = ["expcpi", "privdebt", "urate_gap_ratio", "corecpi", "stir", "reer"]
+# endog_base = ["privdebt", "urate_gap_ratio", "corecpi", "stir", "reer"]
 exog_base = ["brent", "gepu", "maxgepu"]
 # Estimate
 irf = lp.PanelLPX(
