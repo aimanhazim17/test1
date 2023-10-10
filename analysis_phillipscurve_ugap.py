@@ -46,8 +46,11 @@ df_ugap = pd.read_parquet(path_output + "plucking_ugap_quarterly.parquet")
 #     .reset_index(drop=False)
 # )
 df_ugap["quarter"] = df_ugap["quarter"].astype("str")
+# Expected inflation
+df_expcpi = pd.read_parquet(path_data + "data_macro_quarterly_expcpi.parquet")
 # Merge
 df = df.merge(df_ugap, on=["country", "quarter"], how="outer", validate="one_to_one")
+df = df.merge(df_expcpi, on=["country", "quarter"], how="outer", validate="one_to_one")
 
 # %%
 # II --- Pre-analysis wrangling
@@ -76,7 +79,7 @@ list_countries_keep = [
 ]
 df = df[df["country"].isin(list_countries_keep)]
 # Transform
-cols_pretransformed = ["rgdp", "m2", "cpi", "corecpi", "maxgepu"]
+cols_pretransformed = ["rgdp", "m2", "cpi", "corecpi", "maxgepu", "expcpi"]
 cols_levels = ["reer", "ber", "brent", "gepu"]
 cols_rate = [
     "stir",
@@ -132,7 +135,7 @@ list_file_names = []
 # %%
 # POLS
 # Without REER
-eqn = "corecpi ~ 1 + urate_gap_ratio + corecpi_lag1 + corecpi_lag2 + corecpi_lag3 + corecpi_lag4"
+eqn = "corecpi ~ 1 + urate_gap_ratio + expcpi + corecpi_lag1 + corecpi_lag2 + corecpi_lag3 + corecpi_lag4"
 mod_pols, res_pols, params_table_pols, joint_teststats_pols, reg_det_pols = reg_ols(
     df=df, eqn=eqn
 )
@@ -156,7 +159,7 @@ fig = heatmap(
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 # With REER
-eqn = "corecpi ~ 1 + urate_gap_ratio + corecpi_lag1 + corecpi_lag2 + corecpi_lag3 + corecpi_lag4 + reer"
+eqn = "corecpi ~ 1 + urate_gap_ratio + expcpi + corecpi_lag1 + corecpi_lag2 + corecpi_lag3 + corecpi_lag4 + reer"
 (
     mod_pols_reer,
     res_pols_reer,
@@ -191,6 +194,7 @@ mod_fe, res_fe, params_table_fe, joint_teststats_fe, reg_det_fe = fe_reg(
     y_col="corecpi",
     x_cols=[
         "urate_gap_ratio",
+        "expcpi",
         "corecpi_lag1",
         "corecpi_lag2",
         "corecpi_lag3",
@@ -233,6 +237,7 @@ fig = heatmap(
     y_col="corecpi",
     x_cols=[
         "urate_gap_ratio",
+        "expcpi",
         "corecpi_lag1",
         "corecpi_lag2",
         "corecpi_lag3",
@@ -272,6 +277,7 @@ mod_re, res_re, params_table_re, joint_teststats_re, reg_det_re = re_reg(
     y_col="corecpi",
     x_cols=[
         "urate_gap_ratio",
+        "expcpi",
         "corecpi_lag1",
         "corecpi_lag2",
         "corecpi_lag3",
@@ -312,6 +318,7 @@ fig = heatmap(
     y_col="corecpi",
     x_cols=[
         "urate_gap_ratio",
+        "expcpi",
         "corecpi_lag1",
         "corecpi_lag2",
         "corecpi_lag3",
