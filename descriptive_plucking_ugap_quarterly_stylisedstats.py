@@ -45,8 +45,11 @@ df_ugap = pd.read_parquet(path_output + "plucking_ugap_quarterly.parquet")
 #     .reset_index(drop=False)
 # )
 df_ugap["quarter"] = df_ugap["quarter"].astype("str")
+# Expected inflation
+df_expcpi = pd.read_parquet(path_data + "data_macro_quarterly_expcpi.parquet")
 # Merge
 df = df.merge(df_ugap, on=["country", "quarter"], how="outer", validate="one_to_one")
+df = df.merge(df_expcpi, on=["country", "quarter"], how="outer", validate="one_to_one")
 
 # %%
 # II --- Pre-analysis wrangling
@@ -106,9 +109,9 @@ cols_by_country_groups = [2, 2, 3, 3]
 # III --- Plot charts
 # %%
 # III --- Plot by choice of y-axis
-cols_y = ["corecpi", "cpi", "rgdp"]
-cols_y_nice = ["Core Inflation", "Inflation", "RGDP Growth"]
-plot_colours = ["red", "crimson", "blue"]
+cols_y = ["corecpi", "cpi", "rgdp", "expcpi"]
+cols_y_nice = ["Core Inflation", "Inflation", "RGDP Growth", "Expected Inflation"]
+plot_colours = ["red", "crimson", "blue", "green"]
 for col_y, col_y_nice, plot_colour in zip(cols_y, cols_y_nice, plot_colours):
     list_file_names = []
     for country_groups, snakecase_group_name, nice_group_name, n_rows, n_cols in tqdm(
