@@ -81,15 +81,7 @@ df = df[df["country"].isin(list_countries_keep)]
 # Transform
 cols_pretransformed = ["rgdp", "m2", "cpi", "corecpi", "maxgepu", "expcpi"]
 cols_levels = ["reer", "ber", "brent", "gepu"]
-cols_rate = [
-    "stir",
-    "ltir",
-    "urate_ceiling",
-    "urate_gap",
-    "urate_gap_ratio",
-    "privdebt",
-    "privdebt_bank",
-]
+cols_rate = ["stir", "ltir", "urate_ceiling", "urate", "urate_gap", "urate_gap_ratio", "privdebt", "privdebt_bank"]
 for col in cols_levels:
     df[col] = 100 * ((df[col] / df.groupby("country")[col].shift(4)) - 1)
 for col in cols_rate:
@@ -110,9 +102,6 @@ for col in cols_convert_to_ltgaps:
     df = df.merge(df_ltavg_sub, on="country", how="left")
     df[col] = df[col] - df[col + "_ltavg"]
     del df[col + "_ltavg"]
-# Compute indicator for when urate gap is nil
-df.loc[df["urate_gap"] == 0, "gap_is_zero"] = 1
-df.loc[df["urate_gap"] > 0, "gap_is_zero"] = 0
 # Generate lags
 for lag in range(1, 4 + 1):
     for col in cols_pretransformed + cols_levels + cols_rate:
@@ -301,8 +290,8 @@ fig = heatmap(
     colourmap="vlag",
     outputfile=file_name + ".png",
     title=chart_title,
-    lb=params_table_fe.min().min(),
-    ub=params_table_fe.max().max(),
+    lb=params_table_twfe.min().min(),
+    ub=params_table_twfe.max().max(),
     format=".4f",
     show_annot=True,
     y_fontsize=heatmaps_y_fontsize,
@@ -345,8 +334,8 @@ fig = heatmap(
     colourmap="vlag",
     outputfile=file_name + ".png",
     title=chart_title,
-    lb=params_table_fe_reer.min().min(),
-    ub=params_table_fe_reer.max().max(),
+    lb=params_table_twfe_reer.min().min(),
+    ub=params_table_twfe_reer.max().max(),
     format=".4f",
     show_annot=True,
     y_fontsize=heatmaps_y_fontsize,

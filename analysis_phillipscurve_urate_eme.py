@@ -56,21 +56,21 @@ df = df.merge(df_expcpi, on=["country", "quarter"], how="outer", validate="one_t
 # II --- Pre-analysis wrangling
 # Trim countries
 list_countries_keep = [
-    "australia",
+    # "australia",
     "malaysia",
-    "singapore",
+    # "singapore",
     "thailand",
     "indonesia",  # no urate data
     "philippines",  # no urate data
-    "united_states",  # problems with BER
-    "united_kingdom",
-    "germany",
-    "france",
-    "italy",
-    "japan",
-    "south_korea",
+    # "united_states",  # problems with BER
+    # "united_kingdom",
+    # "germany",
+    # "france",
+    # "italy",
+    # "japan",
+    # "south_korea",
     # "taiwan",  # not covered country
-    # "hong_kong_sar_china_",  # no core inflation
+    # "hong_kong_sar_china_",
     "india",  # no urate data
     # "china",  # special case
     "chile",
@@ -136,7 +136,7 @@ eqn = "corecpi ~ 1 + urate * urate_gap_is_zero + expcpi + corecpi_lag1 + corecpi
 mod_pols, res_pols, params_table_pols, joint_teststats_pols, reg_det_pols = reg_ols(
     df=df, eqn=eqn
 )
-file_name = path_output + "phillipscurve_urate_params_pols"
+file_name = path_output + "phillipscurve_urate_eme_params_pols"
 list_file_names += [file_name]
 chart_title = "Pooled OLS: Without REER"
 fig = heatmap(
@@ -164,7 +164,7 @@ eqn = "corecpi ~ 1 + urate * urate_gap_is_zero + expcpi + corecpi_lag1 + corecpi
     joint_teststats_pols_reer,
     reg_det_pols_reer,
 ) = reg_ols(df=df, eqn=eqn)
-file_name = path_output + "phillipscurve_urate_params_pols_reer"
+file_name = path_output + "phillipscurve_urate_eme_params_pols_reer"
 list_file_names += [file_name]
 chart_title = "Pooled OLS: With REER"
 fig = heatmap(
@@ -205,7 +205,7 @@ mod_fe, res_fe, params_table_fe, joint_teststats_fe, reg_det_fe = fe_reg(
     time_effects=False,
     cov_choice="robust",
 )
-file_name = path_output + "phillipscurve_urate_params_fe"
+file_name = path_output + "phillipscurve_urate_eme_params_fe"
 list_file_names += [file_name]
 chart_title = "FE: Without REER"
 fig = heatmap(
@@ -251,7 +251,7 @@ fig = heatmap(
     time_effects=False,
     cov_choice="robust",
 )
-file_name = path_output + "phillipscurve_urate_params_fe_reer"
+file_name = path_output + "phillipscurve_urate_eme_params_fe_reer"
 list_file_names += [file_name]
 chart_title = "FE: With REER"
 fig = heatmap(
@@ -292,7 +292,7 @@ mod_twfe, res_twfe, params_table_twfe, joint_teststats_twfe, reg_det_twfe = fe_r
     time_effects=True,
     cov_choice="robust",
 )
-file_name = path_output + "phillipscurve_urate_params_twfe"
+file_name = path_output + "phillipscurve_urate_eme_params_twfe"
 list_file_names += [file_name]
 chart_title = "TWFE: Without REER"
 fig = heatmap(
@@ -338,7 +338,7 @@ fig = heatmap(
     time_effects=True,
     cov_choice="robust",
 )
-file_name = path_output + "phillipscurve_urate_params_twfe_reer"
+file_name = path_output + "phillipscurve_urate_eme_params_twfe_reer"
 list_file_names += [file_name]
 chart_title = "TWFE: With REER"
 fig = heatmap(
@@ -377,7 +377,7 @@ mod_re, res_re, params_table_re, joint_teststats_re, reg_det_re = re_reg(
     t_col="time",
     cov_choice="robust",
 )
-file_name = path_output + "phillipscurve_urate_params_re"
+file_name = path_output + "phillipscurve_urate_eme_params_re"
 list_file_names += [file_name]
 chart_title = "RE: Without REER"
 fig = heatmap(
@@ -421,7 +421,7 @@ fig = heatmap(
     t_col="time",
     cov_choice="robust",
 )
-file_name = path_output + "phillipscurve_urate_params_re_reer"
+file_name = path_output + "phillipscurve_urate_eme_params_re_reer"
 list_file_names += [file_name]
 chart_title = "RE: With REER"
 fig = heatmap(
@@ -443,14 +443,14 @@ fig = heatmap(
 
 # %%
 # Compile all heat maps
-file_name_pdf = path_output + "phillipscurve_urate_params"
+file_name_pdf = path_output + "phillipscurve_urate_eme_params"
 pil_img2pdf(list_images=list_file_names, extension="png", pdf_name=file_name_pdf)
 telsendfiles(conf=tel_config, path=file_name_pdf + ".pdf", cap=file_name_pdf)
 
 # %%
 # X --- Notify
 telsendmsg(
-    conf=tel_config, msg="global-plucking --- analysis_phillipscurve_urate: COMPLETED"
+    conf=tel_config, msg="global-plucking --- analysis_phillipscurve_urate_eme: COMPLETED"
 )
 
 # End

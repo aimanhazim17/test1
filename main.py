@@ -24,10 +24,18 @@ import descriptive_plucking_urate_quarterly_bizcycles
 import analysis_macrodynamics_ugap
 import analysis_macrodynamics_ugap_ae
 import analysis_macrodynamics_ugap_eme
+# %%
+import analysis_phillipscurve_ugap
+import analysis_phillipscurve_ugap_ae
+import analysis_phillipscurve_ugap_eme
+# %%
+import analysis_phillipscurve_urate
+import analysis_phillipscurve_urate_ae
+import analysis_phillipscurve_urate_eme
 
 # %%
 # X --- Notify
-telsendmsg(conf=tel_config, msg="global-plucking --- main_ugap_quarterly: COMPLETED")
+telsendmsg(conf=tel_config, msg="global-plucking --- main: COMPLETED")
 
 # End
 print("\n----- Ran in " + "{:.0f}".format(time.time() - time_start) + " seconds -----")

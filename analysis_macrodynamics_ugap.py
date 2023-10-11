@@ -73,7 +73,7 @@ df = df[df["country"].isin(list_countries_keep)]
 # Transform
 cols_pretransformed = ["rgdp", "m2", "cpi", "corecpi", "maxgepu", "expcpi"]
 cols_levels = ["reer", "ber", "brent", "gepu"]
-cols_rate = ["stir", "ltir", "urate_ceiling", "urate_gap", "urate_gap_ratio", "privdebt", "privdebt_bank"]
+cols_rate = ["stir", "ltir", "urate_ceiling", "urate", "urate_gap", "urate_gap_ratio", "privdebt", "privdebt_bank"]
 for col in cols_levels:
     df[col] = 100 * ((df[col] / df.groupby("country")[col].shift(4)) - 1)
 for col in cols_rate:
