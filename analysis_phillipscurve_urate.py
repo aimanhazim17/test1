@@ -111,8 +111,10 @@ for col in cols_convert_to_ltgaps:
     df[col] = df[col] - df[col + "_ltavg"]
     del df[col + "_ltavg"]
 # Compute indicator for when urate gap is nil
-df.loc[df["urate_gap"] == 0, "gap_is_zero"] = 1
-df.loc[df["urate_gap"] > 0, "gap_is_zero"] = 0
+df.loc[df["urate_gap"] == 0, "urate_gap_is_zero"] = 1
+df.loc[df["urate_gap"] > 0, "urate_gap_is_zero"] = 0
+# Generate lagged terms for interacted variables
+df["urate_int_urate_gap_is_zero"] = df["urate"] * df["urate_gap_is_zero"]
 # Generate lags
 for lag in range(1, 4 + 1):
     for col in cols_pretransformed + cols_levels + cols_rate:
@@ -133,16 +135,16 @@ del df["quarter"]
 heatmaps_y_fontsize = 12
 heatmaps_x_fontsize = 12
 heatmaps_title_fontsize = 12
-heatmaps_annot_fontsize = 12
+heatmaps_annot_fontsize=12
 list_file_names = []
 # %%
 # POLS
 # Without REER
-eqn = "corecpi ~ 1 + urate_gap_ratio + expcpi + corecpi_lag1 + corecpi_lag2 + corecpi_lag3 + corecpi_lag4"
+eqn = "corecpi ~ 1 + urate * urate_gap_is_zero + expcpi + corecpi_lag1 + corecpi_lag2 + corecpi_lag3 + corecpi_lag4"
 mod_pols, res_pols, params_table_pols, joint_teststats_pols, reg_det_pols = reg_ols(
     df=df, eqn=eqn
 )
-file_name = path_output + "phillipscurve_ugap_params_pols"
+file_name = path_output + "phillipscurve_urate_params_pols"
 list_file_names += [file_name]
 chart_title = "Pooled OLS: Without REER"
 fig = heatmap(
@@ -158,11 +160,11 @@ fig = heatmap(
     y_fontsize=heatmaps_y_fontsize,
     x_fontsize=heatmaps_x_fontsize,
     title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize,
+    annot_fontsize=heatmaps_annot_fontsize
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 # With REER
-eqn = "corecpi ~ 1 + urate_gap_ratio + expcpi + corecpi_lag1 + corecpi_lag2 + corecpi_lag3 + corecpi_lag4 + reer"
+eqn = "corecpi ~ 1 + urate * urate_gap_is_zero + expcpi + corecpi_lag1 + corecpi_lag2 + corecpi_lag3 + corecpi_lag4 + reer"
 (
     mod_pols_reer,
     res_pols_reer,
@@ -170,7 +172,7 @@ eqn = "corecpi ~ 1 + urate_gap_ratio + expcpi + corecpi_lag1 + corecpi_lag2 + co
     joint_teststats_pols_reer,
     reg_det_pols_reer,
 ) = reg_ols(df=df, eqn=eqn)
-file_name = path_output + "phillipscurve_ugap_params_pols_reer"
+file_name = path_output + "phillipscurve_urate_params_pols_reer"
 list_file_names += [file_name]
 chart_title = "Pooled OLS: With REER"
 fig = heatmap(
@@ -186,7 +188,7 @@ fig = heatmap(
     y_fontsize=heatmaps_y_fontsize,
     x_fontsize=heatmaps_x_fontsize,
     title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize,
+    annot_fontsize=heatmaps_annot_fontsize
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 # %%
@@ -196,7 +198,9 @@ mod_fe, res_fe, params_table_fe, joint_teststats_fe, reg_det_fe = fe_reg(
     df=df,
     y_col="corecpi",
     x_cols=[
-        "urate_gap_ratio",
+        "urate",
+        "urate_gap_is_zero",
+        "urate_int_urate_gap_is_zero",
         "expcpi",
         "corecpi_lag1",
         "corecpi_lag2",
@@ -209,7 +213,7 @@ mod_fe, res_fe, params_table_fe, joint_teststats_fe, reg_det_fe = fe_reg(
     time_effects=False,
     cov_choice="robust",
 )
-file_name = path_output + "phillipscurve_ugap_params_fe"
+file_name = path_output + "phillipscurve_urate_params_fe"
 list_file_names += [file_name]
 chart_title = "FE: Without REER"
 fig = heatmap(
@@ -225,7 +229,7 @@ fig = heatmap(
     y_fontsize=heatmaps_y_fontsize,
     x_fontsize=heatmaps_x_fontsize,
     title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize,
+    annot_fontsize=heatmaps_annot_fontsize
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 # With REER
@@ -239,7 +243,9 @@ fig = heatmap(
     df=df,
     y_col="corecpi",
     x_cols=[
-        "urate_gap_ratio",
+        "urate",
+        "urate_gap_is_zero",
+        "urate_int_urate_gap_is_zero",
         "expcpi",
         "corecpi_lag1",
         "corecpi_lag2",
@@ -253,7 +259,7 @@ fig = heatmap(
     time_effects=False,
     cov_choice="robust",
 )
-file_name = path_output + "phillipscurve_ugap_params_fe_reer"
+file_name = path_output + "phillipscurve_urate_params_fe_reer"
 list_file_names += [file_name]
 chart_title = "FE: With REER"
 fig = heatmap(
@@ -269,7 +275,7 @@ fig = heatmap(
     y_fontsize=heatmaps_y_fontsize,
     x_fontsize=heatmaps_x_fontsize,
     title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize,
+    annot_fontsize=heatmaps_annot_fontsize
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 # %%
@@ -279,7 +285,9 @@ mod_twfe, res_twfe, params_table_twfe, joint_teststats_twfe, reg_det_twfe = fe_r
     df=df,
     y_col="corecpi",
     x_cols=[
-        "urate_gap_ratio",
+        "urate",
+        "urate_gap_is_zero",
+        "urate_int_urate_gap_is_zero",
         "expcpi",
         "corecpi_lag1",
         "corecpi_lag2",
@@ -292,7 +300,7 @@ mod_twfe, res_twfe, params_table_twfe, joint_teststats_twfe, reg_det_twfe = fe_r
     time_effects=True,
     cov_choice="robust",
 )
-file_name = path_output + "phillipscurve_ugap_params_twfe"
+file_name = path_output + "phillipscurve_urate_params_twfe"
 list_file_names += [file_name]
 chart_title = "TWFE: Without REER"
 fig = heatmap(
@@ -308,7 +316,7 @@ fig = heatmap(
     y_fontsize=heatmaps_y_fontsize,
     x_fontsize=heatmaps_x_fontsize,
     title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize,
+    annot_fontsize=heatmaps_annot_fontsize
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 # With REER
@@ -322,7 +330,9 @@ fig = heatmap(
     df=df,
     y_col="corecpi",
     x_cols=[
-        "urate_gap_ratio",
+        "urate",
+        "urate_gap_is_zero",
+        "urate_int_urate_gap_is_zero",
         "expcpi",
         "corecpi_lag1",
         "corecpi_lag2",
@@ -336,7 +346,7 @@ fig = heatmap(
     time_effects=True,
     cov_choice="robust",
 )
-file_name = path_output + "phillipscurve_ugap_params_twfe_reer"
+file_name = path_output + "phillipscurve_urate_params_twfe_reer"
 list_file_names += [file_name]
 chart_title = "TWFE: With REER"
 fig = heatmap(
@@ -352,7 +362,7 @@ fig = heatmap(
     y_fontsize=heatmaps_y_fontsize,
     x_fontsize=heatmaps_x_fontsize,
     title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize,
+    annot_fontsize=heatmaps_annot_fontsize
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 # %%
@@ -362,7 +372,9 @@ mod_re, res_re, params_table_re, joint_teststats_re, reg_det_re = re_reg(
     df=df,
     y_col="corecpi",
     x_cols=[
-        "urate_gap_ratio",
+        "urate",
+        "urate_gap_is_zero",
+        "urate_int_urate_gap_is_zero",
         "expcpi",
         "corecpi_lag1",
         "corecpi_lag2",
@@ -373,7 +385,7 @@ mod_re, res_re, params_table_re, joint_teststats_re, reg_det_re = re_reg(
     t_col="time",
     cov_choice="robust",
 )
-file_name = path_output + "phillipscurve_ugap_params_re"
+file_name = path_output + "phillipscurve_urate_params_re"
 list_file_names += [file_name]
 chart_title = "RE: Without REER"
 fig = heatmap(
@@ -389,7 +401,7 @@ fig = heatmap(
     y_fontsize=heatmaps_y_fontsize,
     x_fontsize=heatmaps_x_fontsize,
     title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize,
+    annot_fontsize=heatmaps_annot_fontsize
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 # With REER
@@ -403,7 +415,9 @@ fig = heatmap(
     df=df,
     y_col="corecpi",
     x_cols=[
-        "urate_gap_ratio",
+        "urate",
+        "urate_gap_is_zero",
+        "urate_int_urate_gap_is_zero",
         "expcpi",
         "corecpi_lag1",
         "corecpi_lag2",
@@ -415,7 +429,7 @@ fig = heatmap(
     t_col="time",
     cov_choice="robust",
 )
-file_name = path_output + "phillipscurve_ugap_params_re_reer"
+file_name = path_output + "phillipscurve_urate_params_re_reer"
 list_file_names += [file_name]
 chart_title = "RE: With REER"
 fig = heatmap(
@@ -431,20 +445,20 @@ fig = heatmap(
     y_fontsize=heatmaps_y_fontsize,
     x_fontsize=heatmaps_x_fontsize,
     title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize,
+    annot_fontsize=heatmaps_annot_fontsize
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 
 # %%
 # Compile all heat maps
-file_name_pdf = path_output + "phillipscurve_ugap_params"
+file_name_pdf = path_output + "phillipscurve_urate_params"
 pil_img2pdf(list_images=list_file_names, extension="png", pdf_name=file_name_pdf)
 telsendfiles(conf=tel_config, path=file_name_pdf + ".pdf", cap=file_name_pdf)
 
 # %%
 # X --- Notify
 telsendmsg(
-    conf=tel_config, msg="global-plucking --- analysis_phillipscurve_ugap: COMPLETED"
+    conf=tel_config, msg="global-plucking --- analysis_phillipscurve_urate: COMPLETED"
 )
 
 # End
