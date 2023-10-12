@@ -28,10 +28,17 @@ import analysis_macrodynamics_ugap_eme
 import analysis_phillipscurve_ugap
 import analysis_phillipscurve_ugap_ae
 import analysis_phillipscurve_ugap_eme
+import analysis_phillipscurve_ugap_cbyc
 # %%
 import analysis_phillipscurve_urate
 import analysis_phillipscurve_urate_ae
 import analysis_phillipscurve_urate_eme
+import analysis_phillipscurve_urate_cbyc
+# %%
+import analysis_phillipscurve_urate_smoothed
+import analysis_phillipscurve_urate_smoothed_ae
+import analysis_phillipscurve_urate_smoothed_eme
+import analysis_phillipscurve_urate_smoothed_cbyc
 
 # %%
 # X --- Notify
