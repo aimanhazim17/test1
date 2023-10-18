@@ -11,6 +11,7 @@ import time
 import os
 from dotenv import load_dotenv
 import ast
+from tabulate import tabulate
 
 time_start = time.time()
 
@@ -61,7 +62,7 @@ list_countries_keep = [
     "japan",
     "south_korea",
     # "taiwan",  # not covered country
-    "hong_kong_sar_china_",
+    # "hong_kong_sar_china_",  # no core cpi
     # "india",  # no urate data
     # "china",  # special case
     # "chile",
@@ -77,6 +78,24 @@ for col in cols_levels:
     df[col] = 100 * ((df[col] / df.groupby("country")[col].shift(4)) - 1)
 for col in cols_rate:
     df[col] = df[col] - df.groupby("country")[col].shift(4)
+# Check when the panel becomes balanced
+min_quarter_by_country = df[
+    [
+        "country",
+        "quarter",
+        "expcpi",
+        "privdebt",
+        "urate_gap_ratio",
+        "corecpi",
+        "stir",
+        "reer",
+    ]
+].copy()
+min_quarter_by_country = min_quarter_by_country.dropna(axis=0)
+min_quarter_by_country = (
+    min_quarter_by_country.groupby("country")["quarter"].min().reset_index()
+)
+print(tabulate(min_quarter_by_country, headers="keys", tablefmt="pretty"))
 # Trim dates
 df["quarter"] = pd.to_datetime(df["quarter"]).dt.to_period("q")
 df = df[(df["quarter"] >= t_start_q) & (df["quarter"] <= t_end_q)]
@@ -106,6 +125,8 @@ irf = lp.PanelLPX(
     varcov="kernel",
     ci_width=0.95,
 )
+file_name = path_output + "macrodynamics_ugap_lp_irf_ae"
+irf.to_parquet(file_name + ".parquet")
 # Plot
 fig_irf = lp.IRFPlot(
     irf=irf,
@@ -121,7 +142,6 @@ fig_irf = lp.IRFPlot(
     annot_size=14,
     font_size=16,
 )
-file_name = path_output + "macrodynamics_ugap_lp_irf_ae"
 fig_irf.write_image(file_name + ".png", height=1080, width=1920)
 telsendimg(conf=tel_config, path=file_name + ".png", cap=file_name)
 
