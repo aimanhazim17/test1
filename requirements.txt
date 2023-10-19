@@ -20,3 +20,4 @@ multiprocess
 requests
 ipykernel
 localprojections
+pydynpd

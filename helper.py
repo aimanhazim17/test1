@@ -1,6 +1,7 @@
 import pandas as pd
 import telegram_send
 from linearmodels import PanelOLS, RandomEffects
+from pydynpd import regression
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import statsmodels.formula.api as smf
@@ -411,6 +412,32 @@ def re_reg(
     # Output
     return mod, res, params_table, joint_teststats, reg_det
 
+
+def gmmiv_reg(
+    df: pd.DataFrame,
+    eqn: str,
+    i_col: str,
+    t_col: str,
+):
+    # Sample equation from developer: 'n L1.n L2.n w k  | gmm(n, 2:3) gmm(w, 1:.) iv(k)'
+    # Work on copy
+    d = df.copy()
+
+    # Run regression
+    mod = regression.abond(eqn, d, [i_col, t_col])
+    res = mod.models[0].regression_table
+
+    # Standardise output tables with other funtions
+    params_table = pd.concat([res["variable"], res["coefficient"], res["std_err"]], axis=1)
+    params_table = params_table.set_index("variable")
+    params_table.columns = ["Parameter", "SE"]
+    params_table["LowerCI"] = params_table["Parameter"] - 1.96 * params_table["SE"]
+    params_table["UpperCI"] = params_table["Parameter"] + 1.96 * params_table["SE"]
+    params_table = params_table.rename(index={"_con": "Intercept"})
+
+    # Output
+    return mod, res, params_table
+    
 
 # --- TIME SERIES MODELS
 

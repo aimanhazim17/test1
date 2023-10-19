@@ -142,7 +142,7 @@ for list_endog, list_exog in tqdm(zip(nested_list_endog, nested_list_exog)):
         varcov="robust",
         ci_width=0.95,
     )
-    # remove CIs from reference IRFs
+    # remove CIs from IRFs
     for col in ["UB", "LB"]:
         del irf[col]
     # rename irf
@@ -315,7 +315,7 @@ for shock in tqdm(endog_base):
         shock=[shock],
         channels=endog_base + ["Own"],
         channel_colours=colours_all_endog,
-        n_columns=-1 * (-1 * len(endog_base) // 2),
+        n_columns=-1 * (-1 * len(endog_base) // 3),
         n_rows=len(endog_base) // 2,
         maintitle="Responses from " + shock + " Shock" + " (EMEs)",
         show_fig=False,

@@ -9,6 +9,7 @@ from helper import (
     reg_ols,
     fe_reg,
     re_reg,
+    gmmiv_reg,
     heatmap,
     pil_img2pdf,
 )
@@ -81,7 +82,16 @@ df = df[df["country"].isin(list_countries_keep)]
 # Transform
 cols_pretransformed = ["rgdp", "m2", "cpi", "corecpi", "maxgepu", "expcpi"]
 cols_levels = ["reer", "ber", "brent", "gepu"]
-cols_rate = ["stir", "ltir", "urate_ceiling", "urate", "urate_gap", "urate_gap_ratio", "privdebt", "privdebt_bank"]
+cols_rate = [
+    "stir",
+    "ltir",
+    "urate_ceiling",
+    "urate",
+    "urate_gap",
+    "urate_gap_ratio",
+    "privdebt",
+    "privdebt_bank",
+]
 for col in cols_levels:
     df[col] = 100 * ((df[col] / df.groupby("country")[col].shift(4)) - 1)
 for col in cols_rate:
@@ -261,6 +271,67 @@ fig = heatmap(
     annot_fontsize=heatmaps_annot_fontsize,
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
+
+# %%
+# GMM-IV
+# "n L1.n w k  | gmm(n, 2:4) pred(w k) | onestep nolevel timedumm"
+# Without REER
+mod_gmmiv, res_gmmiv, params_table_gmmiv = gmmiv_reg(
+    df=df,
+    eqn="corecpi urate_gap_ratio expcpi L(1:4).corecpi | "
+    + "endo(corecpi) pred(urate_gap_ratio expcpi) | " 
+    + "hqic collapse",
+    i_col="country",
+    t_col="time",
+)
+file_name = path_output + "phillipscurve_ugap_params_gmmiv"
+list_file_names += [file_name]
+chart_title = "GMM-IV: Without REER"
+fig = heatmap(
+    input=params_table_gmmiv,
+    mask=False,
+    colourmap="vlag",
+    outputfile=file_name + ".png",
+    title=chart_title,
+    lb=params_table_gmmiv.min().min(),
+    ub=params_table_gmmiv.max().max(),
+    format=".4f",
+    show_annot=True,
+    y_fontsize=heatmaps_y_fontsize,
+    x_fontsize=heatmaps_x_fontsize,
+    title_fontsize=heatmaps_title_fontsize,
+    annot_fontsize=heatmaps_annot_fontsize,
+)
+# telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
+# With REER
+mod_gmmiv_reer, res_gmmiv_reer, params_table_gmmiv_reer = gmmiv_reg(
+    df=df,
+    eqn="corecpi urate_gap_ratio expcpi reer L(1:4).corecpi | "
+    + "endo(corecpi) pred(urate_gap_ratio expcpi reer) | " 
+    + "hqic collapse",
+    i_col="country",
+    t_col="time",
+)
+file_name = path_output + "phillipscurve_ugap_params_gmmiv_reer"
+list_file_names += [file_name]
+chart_title = "GMM-IV: With REER"
+fig = heatmap(
+    input=params_table_gmmiv_reer,
+    mask=False,
+    colourmap="vlag",
+    outputfile=file_name + ".png",
+    title=chart_title,
+    lb=params_table_gmmiv_reer.min().min(),
+    ub=params_table_gmmiv_reer.max().max(),
+    format=".4f",
+    show_annot=True,
+    y_fontsize=heatmaps_y_fontsize,
+    x_fontsize=heatmaps_x_fontsize,
+    title_fontsize=heatmaps_title_fontsize,
+    annot_fontsize=heatmaps_annot_fontsize,
+)
+# telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
+
 # %%
 # TWFE
 # Without REER

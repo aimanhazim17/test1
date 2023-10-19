@@ -21,10 +21,6 @@ import descriptive_plucking_ugap_quarterly_stylisedstats
 # %%
 import descriptive_plucking_urate_quarterly_bizcycles
 # %%
-import analysis_macrodynamics_ugap
-import analysis_macrodynamics_ugap_ae
-import analysis_macrodynamics_ugap_eme
-# %%
 import analysis_phillipscurve_ugap
 import analysis_phillipscurve_ugap_ae
 import analysis_phillipscurve_ugap_eme
@@ -39,11 +35,27 @@ import analysis_phillipscurve_urate_smoothed
 import analysis_phillipscurve_urate_smoothed_ae
 import analysis_phillipscurve_urate_smoothed_eme
 import analysis_phillipscurve_urate_smoothed_cbyc
+# %%
+import analysis_macrodynamics_rgdp_threshold
+import analysis_macrodynamics_rgdp_threshold_ae
+import analysis_macrodynamics_rgdp_threshold_eme
+# %%
+import analysis_macrodynamics_urate_threshold
+import analysis_macrodynamics_urate_threshold_ae
+import analysis_macrodynamics_urate_threshold_eme
+# %%
+import analysis_macrodynamics_ugap
+import analysis_macrodynamics_ugap_channels
+import analysis_macrodynamics_ugap_ae
+import analysis_macrodynamics_ugap_channels_ae
+import analysis_macrodynamics_ugap_eme
+import analysis_macrodynamics_ugap_channels_eme
 
 # %%
 # X --- Notify
 telsendmsg(conf=tel_config, msg="global-plucking --- main: COMPLETED")
 
+# %%
 # End
 print("\n----- Ran in " + "{:.0f}".format(time.time() - time_start) + " seconds -----")
 
