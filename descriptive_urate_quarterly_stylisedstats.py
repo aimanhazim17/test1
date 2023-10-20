@@ -115,10 +115,12 @@ cols_by_country_groups = [2, 2, 3, 3]
 # %%
 # III --- Plot by choice of y-axis
 # %%
-# All observations
+# Set up
 cols_y = ["corecpi", "cpi", "rgdp", "expcpi"]
 cols_y_nice = ["Core Inflation", "Inflation", "RGDP Growth", "Expected Inflation"]
 plot_colours = ["red", "crimson", "blue", "green"]
+# %%
+# All observations
 for col_y, col_y_nice, plot_colour in zip(cols_y, cols_y_nice, plot_colours):
     list_file_names = []
     for country_groups, snakecase_group_name, nice_group_name, n_rows, n_cols in tqdm(
@@ -165,78 +167,84 @@ for col_y, col_y_nice, plot_colour in zip(cols_y, cols_y_nice, plot_colours):
     pil_img2pdf(list_images=list_file_names, extension="png", pdf_name=pdf_file_name)
     telsendfiles(conf=tel_config, path=pdf_file_name + ".pdf", cap=pdf_file_name)
 
+
 # %%
-# Stratify further by when urate gap is zero, and above zero
-for gap_zero_val, gap_zero_val_nice in zip([1, 0], ["at zero", "above zero"]):
-    for col_y, col_y_nice, plot_colour in zip(cols_y, cols_y_nice, plot_colours):
-        list_file_names = []
-        for (
-            country_groups,
-            snakecase_group_name,
-            nice_group_name,
-            n_rows,
-            n_cols,
-        ) in tqdm(
-            zip(
-                nested_list_country_groups,
-                snakecase_group_names_by_country_groups,
-                nice_group_names_by_country_groups,
-                rows_by_country_groups,
-                cols_by_country_groups,
-            )
-        ):
-            df_sub = df[df["country"].isin(country_groups)].copy()
-            df_sub = df_sub[df_sub["urate_gap_is_zero"] == gap_zero_val]
-            fig_urate_and_ceiling = subplots_scatterplots(
-                data=df_sub,
-                col_group="country",
-                cols_x=["urate"],
-                cols_y=[col_y],
-                annot_size=12,
-                font_size=12,
-                marker_colours=[plot_colour],
-                marker_sizes=[6],
-                include_best_fit=True,
-                best_fit_colours=[plot_colour],
-                best_fit_widths=[2],
-                main_title="Quarterly U-rate and "
-                + col_y_nice
-                + " in "
-                + nice_group_name
-                + " when U-rate gap is "
-                + gap_zero_val_nice,
-                maxrows=n_rows,
-                maxcols=n_cols,
-            )
-            file_name = (
-                path_output
-                + "stylised_stats_urate_quarterly_"
-                + col_y
-                + "_"
-                + snakecase_group_name
-                + "_"
-                + "urate_gap_is_zero_"
-                + str(gap_zero_val)
-            )
-            fig_urate_and_ceiling.write_image(file_name + ".png")
-            # telsendimg(
-            #     conf=tel_config,
-            #     path=file_name + ".png",
-            #     cap=file_name
-            # )
-            list_file_names += [file_name]
-        pdf_file_name = (
+# Stratify further by H = 0, and H = 1, but in the same graph by country
+for col_y, col_y_nice, plot_colour in zip(cols_y, cols_y_nice, plot_colours):
+    list_file_names = []
+    for (
+        country_groups,
+        snakecase_group_name,
+        nice_group_name,
+        n_rows,
+        n_cols,
+    ) in tqdm(
+        zip(
+            nested_list_country_groups,
+            snakecase_group_names_by_country_groups,
+            nice_group_names_by_country_groups,
+            rows_by_country_groups,
+            cols_by_country_groups,
+        )
+    ):
+        # restrict to countries of interest
+        df_sub = df[df["country"].isin(country_groups)].copy()
+        # split x-axis columns into when H = 0 and H = 1
+        df_sub.loc[
+            df_sub["urate_gap_is_zero"] == 1, "urate_when_urate_gap_is_zero"
+        ] = df_sub["urate"]
+        df_sub.loc[
+            df_sub["urate_gap_is_zero"] == 0, "urate_when_urate_gap_is_above_zero"
+        ] = df_sub["urate"]
+        # plot both in the same chart, but with diff colours
+        fig = subplots_scatterplots(
+            data=df_sub,
+            col_group="country",
+            cols_x=[
+                "urate_when_urate_gap_is_above_zero",
+                "urate_when_urate_gap_is_zero",
+            ],
+            cols_y=[col_y, col_y],
+            annot_size=12,
+            font_size=12,
+            marker_colours=[plot_colour, "black"],
+            marker_sizes=[4, 4],
+            include_best_fit=True,
+            best_fit_colours=[plot_colour, "black"],
+            best_fit_widths=[2, 2],
+            main_title="Quarterly U-rate and "
+            + col_y_nice
+            + " in "
+            + nice_group_name
+            + " when U-rate gap is at zero (black), or above zero (coloured)",
+            maxrows=n_rows,
+            maxcols=n_cols,
+        )
+        file_name = (
             path_output
             + "stylised_stats_urate_quarterly_"
-            + "urate_gap_is_zero_"
-            + str(gap_zero_val)
-            + "_"
             + col_y
+            + "_"
+            + snakecase_group_name
+            + "_"
+            + "urate_gap_is_or_above_zero"
         )
-        pil_img2pdf(
-            list_images=list_file_names, extension="png", pdf_name=pdf_file_name
-        )
-        telsendfiles(conf=tel_config, path=pdf_file_name + ".pdf", cap=pdf_file_name)
+        fig.write_image(file_name + ".png")
+        # telsendimg(
+        #     conf=tel_config,
+        #     path=file_name + ".png",
+        #     cap=file_name
+        # )
+        list_file_names += [file_name]
+    pdf_file_name = (
+        path_output
+        + "stylised_stats_urate_quarterly_"
+        + col_y
+        + "_"
+        + "urate_gap_is_or_above_zero"
+    )
+    pil_img2pdf(list_images=list_file_names, extension="png", pdf_name=pdf_file_name)
+    telsendfiles(conf=tel_config, path=pdf_file_name + ".pdf", cap=pdf_file_name)
 
 
 # %%

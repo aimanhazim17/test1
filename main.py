@@ -14,12 +14,14 @@ tel_config = os.getenv("TEL_CONFIG")
 # %%
 # I --- Which scripts to run in succession?
 # %%
+import descriptive_plucking_urate_quarterly_bizcycles
+# %%
 import analysis_plucking_ugap_quarterly
 import descriptive_plucking_ugap_quarterly_viz
 # %%
 import descriptive_plucking_ugap_quarterly_stylisedstats
 # %%
-import descriptive_plucking_urate_quarterly_bizcycles
+import descriptive_urate_quarterly_stylisedstats
 # %%
 import analysis_phillipscurve_ugap
 import analysis_phillipscurve_ugap_ae

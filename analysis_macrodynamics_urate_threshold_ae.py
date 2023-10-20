@@ -133,7 +133,7 @@ irf_on, irf_off = lp.ThresholdPanelLPX(
     threshold_var="urate_gap_is_zero",
     response=endog_base,
     horizon=12,
-    lags=4,
+    lags=1,
     varcov="kernel",
     ci_width=0.95,
 )
