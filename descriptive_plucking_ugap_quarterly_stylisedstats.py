@@ -142,6 +142,8 @@ for col_y, col_y_nice, plot_colour in zip(cols_y, cols_y_nice, plot_colours):
             + nice_group_name,
             maxrows=n_rows,
             maxcols=n_cols,
+            add_horizontal_at_yzero=False,
+            add_vertical_at_xzero=False
         )
         file_name = (
             path_output

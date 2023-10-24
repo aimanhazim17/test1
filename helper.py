@@ -713,6 +713,74 @@ def scatterplot(
     return fig
 
 
+def scatterplot_layered(
+    data: pd.DataFrame,
+    y_cols: list[str],
+    y_cols_nice: list[str],
+    x_cols: list[str],
+    x_cols_nice: list[str],
+    marker_colours: list[str],
+    marker_sizes: list[int],
+    best_fit_colours: list[str],
+    best_fit_widths: list[int],
+    main_title: str,
+    font_size: int
+):
+    # generate figure
+    fig = go.Figure()
+    for y_col, y_col_nice, x_col, x_col_nice, marker_colour, marker_size, best_fit_colour, best_fit_width in zip(
+        y_cols, y_cols_nice, x_cols, x_cols_nice, marker_colours, marker_sizes, best_fit_colours, best_fit_widths
+    ):
+        # some label changing
+        d_formarkers = data.copy()
+        d_formarkers = d_formarkers[[y_col, x_col]].dropna(axis=0)
+        d_formarkers = d_formarkers.rename(columns={y_col: y_col_nice, x_col: x_col_nice})
+        # add markers
+        fig.add_trace(
+            go.Scatter(
+                x=d_formarkers[x_col_nice],
+                y=d_formarkers[y_col_nice],
+                mode="markers",
+                marker=dict(color=marker_colour, size=marker_size),
+                showlegend=False,
+            )
+        )
+        # add best fit line
+        try:
+            # create copy of entity-specific data
+            d_forbestfit = data.copy()
+            # drop rows that are empty
+            d_forbestfit = d_forbestfit[[y_col, x_col]].dropna(axis=0)
+            # linear regression
+            eqn_bfit = y_col + " ~ " + x_col
+            est_bfit = smf.ols(eqn_bfit, data=d_forbestfit).fit()
+            pred_bfit = est_bfit.predict()  # check if arguments are needed
+            d_forbestfit["_pred_full"] = pred_bfit
+            # plot best fit line
+            fig.add_trace(
+                go.Scatter(
+                    x=d_forbestfit[x_col],
+                    y=d_forbestfit["_pred_full"],
+                    mode="lines",
+                    line=dict(color=best_fit_colour, width=best_fit_width),
+                    showlegend=False,
+                )
+            )
+        except:
+            print("Error when estimating best fit line, please inspect dataframe")
+    # layouts
+    fig.update_layout(
+        title=main_title,
+        plot_bgcolor="white",
+        font=dict(color="black", size=font_size),
+        height=768,
+        width=1366,
+    )
+    # output
+    return fig
+
+
+
 def barchart(
     data: pd.DataFrame, y_col: str, x_col: str, main_title: str, decimal_points: int
 ):
@@ -1044,6 +1112,8 @@ def subplots_scatterplots(
     main_title: str,
     maxrows: int,
     maxcols: int,
+    add_vertical_at_xzero: bool,
+    add_horizontal_at_yzero: bool,
 ):
     # Create titles first
     titles = []
@@ -1115,6 +1185,10 @@ def subplots_scatterplots(
                     )
                 except:
                     print("Error for entity " + str(group) + ", skipping to next")
+            if add_horizontal_at_yzero:
+                fig.add_hline(y=0, line_dash="dot", row=nr, col=nc, line_color="black", line_width=2)
+            if add_vertical_at_xzero:
+                fig.add_vline(x=0, line_dash="dot", row=nr, col=nc, line_color="black", line_width=2)
         # Move to next subplot
         nc += 1
         if nr > maxr:
