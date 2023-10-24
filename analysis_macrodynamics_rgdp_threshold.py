@@ -98,8 +98,8 @@ min_quarter_by_country = df[
         "expcpi",
         "privdebt",
         "rgdp",
-        "urate_gap_ratio",
-        "urate_gap_is_zero",
+        # "urate_gap_ratio",
+        # "urate_gap_is_zero",
         "corecpi",
         "stir",
         "reer",
@@ -124,7 +124,7 @@ df = df.set_index(["country", "time"])
 # %%
 # III --- Analysis
 # Setup
-endog_base = ["expcpi", "privdebt", "rgdp", "corecpi", "stir", "reer"]
+endog_base = ["privdebt", "stir", "rgdp", "corecpi", "reer", "expcpi"]
 exog_base = ["brent", "gepu", "maxgepu"]
 # Estimate
 irf_on, irf_off = lp.ThresholdPanelLPX(

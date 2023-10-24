@@ -124,7 +124,7 @@ df = df.set_index(["country", "time"])
 # %%
 # III --- Analysis
 # Setup
-endog_base = ["expcpi", "privdebt", "rgdp", "corecpi", "stir", "reer"]
+endog_base = ["privdebt", "stir", "rgdp", "corecpi", "reer", "expcpi"]
 exog_base = ["brent", "gepu", "maxgepu"]
 # Estimate
 irf_on, irf_off = lp.ThresholdPanelLPX(

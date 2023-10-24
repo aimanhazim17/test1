@@ -102,7 +102,7 @@ df.loc[df["urate_gap"] > 0, "urate_gap_is_zero"] = 0
 # df.loc[df["urate_gap_ratio"] <= 1.05, "urate_gap_is_zero"] = 1
 # df.loc[df["urate_gap_is_zero"].isna(), "urate_gap_is_zero"] = 0
 # Generate change in inflation rates
-for col in ["corecpi", "cpi", "expcpi", "urate"]:
+for col in ["corecpi", "cpi", "expcpi", "urate", "rgdp"]:
     df[col + "_change"] = df[col] - df.groupby("country")[col].shift(
         1
     )  # first difference in YoY growth rates
@@ -124,8 +124,8 @@ cols_by_country_groups = [2, 2, 3, 3]
 # III --- Plot by choice of y-axis
 # %%
 # Set up
-cols_x = ["urate"] * 4 + ["urate_change"] * 3
-cols_x_nice = ["U-rate"] * 4 + ["Change in U-rate"] * 3
+cols_x = ["urate"] * 4 + ["urate_change"] * 4 + ["urate_change"] * 4
+cols_x_nice = ["U-rate"] * 4 + ["Change in U-rate"] * 4 + ["Change in U-rate"] * 4
 cols_y = [
     "corecpi",
     "cpi",
@@ -133,7 +133,12 @@ cols_y = [
     "expcpi",
     "corecpi_change",
     "cpi_change",
+    "rgdp_change",
     "expcpi_change",
+    "corecpi",
+    "cpi",
+    "rgdp",
+    "expcpi",
 ]
 cols_y_nice = [
     "Core Inflation",
@@ -142,9 +147,27 @@ cols_y_nice = [
     "Expected Inflation",
     "Change in Core Inflation",
     "Change in Inflation",
+    "Change in RGDP Growth",
     "Change in Expected Inflation",
+    "Core Inflation",
+    "Inflation",
+    "RGDP Growth",
+    "Expected Inflation",
 ]
-plot_colours = ["red", "crimson", "blue", "green", "orange", "peru", "darkseagreen"]
+plot_colours = [
+    "red",
+    "crimson",
+    "blue",
+    "green",
+    "orange",
+    "peru",
+    "cadetblue",
+    "darkseagreen",
+    "red",
+    "crimson",
+    "blue",
+    "green",
+]
 
 # %%
 # All observations

@@ -46,12 +46,29 @@ import analysis_macrodynamics_urate_threshold
 import analysis_macrodynamics_urate_threshold_ae
 import analysis_macrodynamics_urate_threshold_eme
 # %%
+import analysis_macrodynamics_rgdp_fd_threshold
+import analysis_macrodynamics_rgdp_fd_threshold_ae
+import analysis_macrodynamics_rgdp_fd_threshold_eme
+# %%
+import analysis_macrodynamics_urate_fd_threshold
+import analysis_macrodynamics_urate_fd_threshold_ae
+import analysis_macrodynamics_urate_fd_threshold_eme
+# %%
 import analysis_macrodynamics_ugap
 import analysis_macrodynamics_ugap_channels
 import analysis_macrodynamics_ugap_ae
 import analysis_macrodynamics_ugap_channels_ae
 import analysis_macrodynamics_ugap_eme
 import analysis_macrodynamics_ugap_channels_eme
+# %%
+import analysis_macrodynamics_urate
+import analysis_macrodynamics_urate_ae
+import analysis_macrodynamics_urate_eme
+# %%
+import analysis_macrodynamics_rgdp
+import analysis_macrodynamics_rgdp_ae
+import analysis_macrodynamics_rgdp_eme
+
 
 # %%
 # X --- Notify

@@ -117,22 +117,6 @@ for col in cols_levels:
     df[col] = 100 * ((df[col] / df.groupby("country")[col].shift(4)) - 1)
 for col in cols_rate:
     df[col] = df[col] - df.groupby("country")[col].shift(4)
-# Convert into long-term gaps (unique to this analysis)
-cols_convert_to_ltgaps = [
-    i
-    for i in cols_pretransformed + cols_levels + cols_rate
-    if i not in ["urate", "urate_ceiling", "urate_gap", "urate_gap_ratio"]
-]
-for col in cols_convert_to_ltgaps:
-    df_ltavg_sub = (
-        df.groupby("country")[col]
-        .mean()
-        .reset_index()
-        .rename(columns={col: col + "_ltavg"})
-    )
-    df = df.merge(df_ltavg_sub, on="country", how="left")
-    df[col] = df[col] - df[col + "_ltavg"]
-    del df[col + "_ltavg"]
 # Generate lags
 for lag in range(1, 4 + 1):
     for col in cols_pretransformed + cols_levels + cols_rate:

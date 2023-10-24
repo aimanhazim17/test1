@@ -101,14 +101,14 @@ df = df.set_index(["country", "time"])
 # %%
 # III --- Set up
 # Setup
-endog_base = ["expcpi", "privdebt", "urate_gap_ratio", "corecpi", "stir", "reer"]
+endog_base = ["privdebt", "stir", "urate_gap_ratio", "corecpi", "reer", "expcpi"]
 colours_all_endog = [
-    "red",
     "darkgreen",
-    "black",
-    "darkblue",
-    "darkred",
     "cadetblue",
+    "black",
+    "darkred",
+    "darkblue",
+    "red",
     "grey",
 ]  # +1 for "own"
 exog_base = ["brent", "gepu", "maxgepu"]
@@ -138,7 +138,7 @@ for list_endog, list_exog in tqdm(zip(nested_list_endog, nested_list_exog)):
         X=list_exog,
         response=list_endog,
         horizon=16,
-        lags=4,
+        lags=1,
         varcov="robust",
         ci_width=0.95,
     )

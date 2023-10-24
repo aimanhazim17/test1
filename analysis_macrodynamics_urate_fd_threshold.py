@@ -85,6 +85,10 @@ cols_rate = [
     "urate_gap_ratio",
     "privdebt",
     "privdebt_bank",
+    "corecpi", 
+    "cpi", 
+    "expcpi",
+    "rgdp"
 ]
 for col in cols_levels:
     df[col] = 100 * ((df[col] / df.groupby("country")[col].shift(4)) - 1)
@@ -137,7 +141,7 @@ irf_on, irf_off = lp.ThresholdPanelLPX(
     varcov="kernel",
     ci_width=0.95,
 )
-file_name = path_output + "macrodynamics_urate_threshold_lp_irf"
+file_name = path_output + "macrodynamics_urate_fd_threshold_lp_irf"
 irf_on.to_parquet(file_name + "_on" + ".parquet")
 irf_off.to_parquet(file_name + "_off" + ".parquet")
 # Plot
@@ -162,7 +166,7 @@ telsendimg(conf=tel_config, path=file_name + ".png", cap=file_name)
 # %%
 # X --- Notify
 telsendmsg(
-    conf=tel_config, msg="global-plucking --- analysis_macrodynamics_urate_threshold: COMPLETED"
+    conf=tel_config, msg="global-plucking --- analysis_macrodynamics_urate_fd_threshold: COMPLETED"
 )
 
 # End

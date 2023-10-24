@@ -110,9 +110,7 @@ df = df.set_index(["country", "time"])
 # %%
 # II --- Analysis
 # Setup
-# endog_base = ["privdebt", "urate_ceiling", "urate_gap_ratio", "corecpi", "stir", "reer"]
-endog_base = ["expcpi", "privdebt", "urate_gap_ratio", "corecpi", "stir", "reer"]
-# endog_base = ["privdebt", "urate_gap_ratio", "corecpi", "stir", "reer"]
+endog_base = ["privdebt", "stir", "urate_gap_ratio", "corecpi", "reer", "expcpi"]
 exog_base = ["brent", "gepu", "maxgepu"]
 # Estimate
 irf = lp.PanelLPX(
@@ -121,7 +119,7 @@ irf = lp.PanelLPX(
     X=exog_base,
     response=endog_base,
     horizon=16,
-    lags=4,
+    lags=1,
     varcov="kernel",
     ci_width=0.95,
 )

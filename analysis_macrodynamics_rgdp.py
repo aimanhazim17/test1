@@ -44,6 +44,7 @@ df_expcpi = pd.read_parquet(path_data + "data_macro_quarterly_expcpi.parquet")
 df = df.merge(df_ugap, on=["country", "quarter"], how="outer", validate="one_to_one")
 df = df.merge(df_expcpi, on=["country", "quarter"], how="outer", validate="one_to_one")
 
+
 # %%
 # II --- Pre-analysis wrangling
 # Trim countries
@@ -52,7 +53,7 @@ list_countries_keep = [
     "malaysia",  # short urate and corecpi data
     "singapore",
     "thailand",
-    "indonesia",  # no urate data
+    "indonesia",  # no ura/te data
     # "philippines",  # no urate data
     "united_states",  # problems with BER
     "united_kingdom",
@@ -70,11 +71,8 @@ list_countries_keep = [
     "brazil",
 ]
 df = df[df["country"].isin(list_countries_keep)]
-# Generate dummy for when u-rate gap is zero
-df.loc[df["urate_gap"] == 0, "urate_gap_is_zero"] = 1
-df.loc[df["urate_gap"] > 0, "urate_gap_is_zero"] = 0
 # Transform
-cols_pretransformed = ["rgdp", "m2", "cpi", "corecpi", "maxgepu", "expcpi", "urate_gap_is_zero"]
+cols_pretransformed = ["rgdp", "m2", "cpi", "corecpi", "maxgepu", "expcpi"]
 cols_levels = ["reer", "ber", "brent", "gepu"]
 cols_rate = [
     "stir",
@@ -98,7 +96,6 @@ min_quarter_by_country = df[
         "expcpi",
         "privdebt",
         "urate_gap_ratio",
-        "urate_gap_is_zero",
         "corecpi",
         "stir",
         "reer",
@@ -121,34 +118,31 @@ del df["quarter"]
 df = df.set_index(["country", "time"])
 
 # %%
-# III --- Analysis
+# II --- Analysis
 # Setup
-endog_base = ["privdebt", "stir", "urate", "corecpi", "reer", "expcpi"]
+endog_base = ["privdebt", "stir", "rgdp", "corecpi", "reer", "expcpi"]
 exog_base = ["brent", "gepu", "maxgepu"]
 # Estimate
-irf_on, irf_off = lp.ThresholdPanelLPX(
+irf = lp.PanelLPX(
     data=df,
     Y=endog_base,
     X=exog_base,
-    threshold_var="urate_gap_is_zero",
     response=endog_base,
-    horizon=12,
+    horizon=16,
     lags=1,
     varcov="kernel",
     ci_width=0.95,
 )
-file_name = path_output + "macrodynamics_urate_threshold_lp_irf"
-irf_on.to_parquet(file_name + "_on" + ".parquet")
-irf_off.to_parquet(file_name + "_off" + ".parquet")
+file_name = path_output + "macrodynamics_rgdp_lp_irf"
+irf.to_parquet(file_name + ".parquet")
 # Plot
-fig_irf = lp.ThresholdIRFPlot(
-    irf_threshold_on=irf_on,
-    irf_threshold_off=irf_off,
+fig_irf = lp.IRFPlot(
+    irf=irf,
     response=endog_base,
     shock=endog_base,
     n_columns=len(endog_base),
     n_rows=len(endog_base),
-    maintitle="Local Projections Model: Impulse Response Functions; Red = U-Rate is At its Floor",
+    maintitle="Local Projections Model: Impulse Response Functions",
     show_fig=False,
     save_pic=False,
     out_path="",
@@ -162,7 +156,7 @@ telsendimg(conf=tel_config, path=file_name + ".png", cap=file_name)
 # %%
 # X --- Notify
 telsendmsg(
-    conf=tel_config, msg="global-plucking --- analysis_macrodynamics_urate_threshold: COMPLETED"
+    conf=tel_config, msg="global-plucking --- analysis_macrodynamics_rgdp: COMPLETED"
 )
 
 # End

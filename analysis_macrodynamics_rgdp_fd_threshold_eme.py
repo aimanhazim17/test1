@@ -48,21 +48,21 @@ df = df.merge(df_expcpi, on=["country", "quarter"], how="outer", validate="one_t
 # II --- Pre-analysis wrangling
 # Trim countries
 list_countries_keep = [
-    "australia",
-    "malaysia",  # short urate and corecpi data
-    "singapore",
+    # "australia",
+    "malaysia",
+    # "singapore",
     "thailand",
     "indonesia",  # no urate data
     # "philippines",  # no urate data
-    "united_states",  # problems with BER
-    "united_kingdom",
-    "germany",
-    "france",
-    "italy",
-    "japan",
-    "south_korea",
+    # "united_states",  # problems with BER
+    # "united_kingdom",
+    # "germany",
+    # "france",
+    # "italy",
+    # "japan",
+    # "south_korea",
     # "taiwan",  # not covered country
-    # "hong_kong_sar_china_",  # no core cpi
+    # "hong_kong_sar_china_",
     "india",  # no urate data
     # "china",  # special case
     "chile",
@@ -85,6 +85,10 @@ cols_rate = [
     "urate_gap_ratio",
     "privdebt",
     "privdebt_bank",
+    "corecpi", 
+    "cpi", 
+    "expcpi",
+    "rgdp"
 ]
 for col in cols_levels:
     df[col] = 100 * ((df[col] / df.groupby("country")[col].shift(4)) - 1)
@@ -97,6 +101,7 @@ min_quarter_by_country = df[
         "quarter",
         "expcpi",
         "privdebt",
+        "rgdp",
         "urate_gap_ratio",
         "urate_gap_is_zero",
         "corecpi",
@@ -123,7 +128,7 @@ df = df.set_index(["country", "time"])
 # %%
 # III --- Analysis
 # Setup
-endog_base = ["privdebt", "stir", "urate", "corecpi", "reer", "expcpi"]
+endog_base = ["privdebt", "stir", "rgdp", "corecpi", "reer", "expcpi"]
 exog_base = ["brent", "gepu", "maxgepu"]
 # Estimate
 irf_on, irf_off = lp.ThresholdPanelLPX(
@@ -137,7 +142,7 @@ irf_on, irf_off = lp.ThresholdPanelLPX(
     varcov="kernel",
     ci_width=0.95,
 )
-file_name = path_output + "macrodynamics_urate_threshold_lp_irf"
+file_name = path_output + "macrodynamics_rgdp_fd_threshold_lp_irf_eme"
 irf_on.to_parquet(file_name + "_on" + ".parquet")
 irf_off.to_parquet(file_name + "_off" + ".parquet")
 # Plot
@@ -148,7 +153,7 @@ fig_irf = lp.ThresholdIRFPlot(
     shock=endog_base,
     n_columns=len(endog_base),
     n_rows=len(endog_base),
-    maintitle="Local Projections Model: Impulse Response Functions; Red = U-Rate is At its Floor",
+    maintitle="Local Projections Model: Impulse Response Functions (Emerging Economies); Red = U-Rate is At its Floor",
     show_fig=False,
     save_pic=False,
     out_path="",
@@ -162,7 +167,7 @@ telsendimg(conf=tel_config, path=file_name + ".png", cap=file_name)
 # %%
 # X --- Notify
 telsendmsg(
-    conf=tel_config, msg="global-plucking --- analysis_macrodynamics_urate_threshold: COMPLETED"
+    conf=tel_config, msg="global-plucking --- analysis_macrodynamics_rgdp_fd_threshold_eme: COMPLETED"
 )
 
 # End
