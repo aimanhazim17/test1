@@ -77,10 +77,10 @@ cols_levels = ["reer", "ber", "brent", "gepu"]
 cols_rate = [
     "stir",
     "ltir",
-    "urate_ceiling",
-    "urate",
-    "urate_gap",
-    "urate_gap_ratio",
+    # "urate_ceiling",
+    # "urate",
+    # "urate_gap",
+    # "urate_gap_ratio",
     "privdebt",
     "privdebt_bank",
 ]
@@ -120,20 +120,29 @@ df = df.set_index(["country", "time"])
 # %%
 # II --- Analysis
 # Setup
-endog_base = ["privdebt", "stir", "urate", "corecpi", "reer", "expcpi"]
-exog_base = ["brent", "gepu", "maxgepu"]
+endog_base = ["brent", "stir", "urate_ceiling"]
+# exog_base = ["brent"]
 # Estimate
-irf = lp.PanelLPX(
+# irf = lp.PanelLPX(
+#     data=df,
+#     Y=endog_base,
+#     X=exog_base,
+#     response=endog_base,
+#     horizon=12,
+#     lags=1,
+#     varcov="kernel",
+#     ci_width=0.95,
+# )
+irf = lp.PanelLP(
     data=df,
     Y=endog_base,
-    X=exog_base,
     response=endog_base,
     horizon=12,
     lags=1,
     varcov="kernel",
     ci_width=0.95,
 )
-file_name = path_output + "macrodynamics_urate_lp_irf"
+file_name = path_output + "macrodynamics_basic_lp_irf"
 irf.to_parquet(file_name + ".parquet")
 # Plot
 fig_irf = lp.IRFPlot(
@@ -156,7 +165,7 @@ telsendimg(conf=tel_config, path=file_name + ".png", cap=file_name)
 # %%
 # X --- Notify
 telsendmsg(
-    conf=tel_config, msg="global-plucking --- analysis_macrodynamics_urate: COMPLETED"
+    conf=tel_config, msg="global-plucking --- analysis_macrodynamics_basic: COMPLETED"
 )
 
 # End
