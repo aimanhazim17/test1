@@ -191,7 +191,7 @@ for col_x, col_x_nice, col_y, col_y_nice, plot_colour in zip(
             cols_x=[col_x],
             cols_y=[col_y],
             annot_size=12,
-            font_size=12,
+            font_size=14,
             marker_colours=[plot_colour],
             marker_sizes=[6],
             include_best_fit=True,
@@ -269,7 +269,7 @@ for col_x, col_x_nice, col_y, col_y_nice, plot_colour in zip(
             ],
             cols_y=[col_y, col_y],
             annot_size=12,
-            font_size=12,
+            font_size=14,
             marker_colours=[plot_colour, "black"],
             marker_sizes=[4, 4],
             include_best_fit=True,
@@ -362,7 +362,7 @@ for list_countries, country_group_name_nice, country_group_name_filesuffix in tq
             + " when U-rate gap is at zero (black), or above zero (coloured)"
             + " for "
             + country_group_name_nice,
-            font_size=11,
+            font_size=14,
         )
         file_name = (
             path_output

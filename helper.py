@@ -7,6 +7,7 @@ from plotly.subplots import make_subplots
 import statsmodels.formula.api as smf
 import statsmodels.tsa.api as smt
 from statsmodels.tsa.ar_model import ar_select_order
+from sklearn.ensemble import IsolationForest
 import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.graph_objects as go
@@ -19,9 +20,11 @@ import requests
 import json
 from dotenv import load_dotenv
 from tqdm import tqdm
+from tabulate import tabulate
 
 load_dotenv()
 plt.switch_backend("agg")  # agg
+opt_random_state = 42
 
 
 # --- Notifications
@@ -42,18 +45,44 @@ def telsendmsg(conf="", msg=""):
 
 
 # --- Data
-def x13_deseasonalise(
-        data: pd.DataFrame,
-        cols_to_adj: list[str]
-):
+def outlier_isolationforest(data, cols_x, opt_max_samples, opt_threshold):
+    # Prelims
+    d = data.copy()
+    # Model
+    res = IsolationForest(
+        random_state=opt_random_state,
+        max_samples=opt_max_samples,
+        n_jobs=7,
+        contamination=opt_threshold,
+    ).fit_predict(d[cols_x])
+    res = pd.DataFrame(res, columns=["outlier"])
+    # Merge with original
+    d = d.merge(res, right_index=True, left_index=True)
+    # Tabulate outliers
+    print(
+        tabulate(
+            pd.DataFrame(d["outlier"].value_counts()),
+            tablefmt="psql",
+            headers="keys",
+            showindex="always",
+        )
+    )
+    # Drop outliers
+    d = d[d["outlier"] == 1].copy()  # outliers = -1
+    # Trim columns
+    for i in ["outlier"]:
+        del d[i]
+    # Output
+    return d
+
+
+def x13_deseasonalise(data: pd.DataFrame, cols_to_adj: list[str]):
     # deep copy
     df = data.copy()
     # adjust column by column
     for col in cols_to_adj:
         # run x13
-        res = smt.x13_arima_analysis(
-            endog=df[col]
-        )
+        res = smt.x13_arima_analysis(endog=df[col])
         # extract the deseasonalised series
         df[col] = res.seasadj
     # output
@@ -428,7 +457,9 @@ def gmmiv_reg(
     res = mod.models[0].regression_table
 
     # Standardise output tables with other funtions
-    params_table = pd.concat([res["variable"], res["coefficient"], res["std_err"]], axis=1)
+    params_table = pd.concat(
+        [res["variable"], res["coefficient"], res["std_err"]], axis=1
+    )
     params_table = params_table.set_index("variable")
     params_table.columns = ["Parameter", "SE"]
     params_table["LowerCI"] = params_table["Parameter"] - 1.96 * params_table["SE"]
@@ -437,7 +468,7 @@ def gmmiv_reg(
 
     # Output
     return mod, res, params_table
-    
+
 
 # --- TIME SERIES MODELS
 
@@ -724,17 +755,35 @@ def scatterplot_layered(
     best_fit_colours: list[str],
     best_fit_widths: list[int],
     main_title: str,
-    font_size: int
+    font_size: int,
 ):
     # generate figure
     fig = go.Figure()
-    for y_col, y_col_nice, x_col, x_col_nice, marker_colour, marker_size, best_fit_colour, best_fit_width in zip(
-        y_cols, y_cols_nice, x_cols, x_cols_nice, marker_colours, marker_sizes, best_fit_colours, best_fit_widths
+    for (
+        y_col,
+        y_col_nice,
+        x_col,
+        x_col_nice,
+        marker_colour,
+        marker_size,
+        best_fit_colour,
+        best_fit_width,
+    ) in zip(
+        y_cols,
+        y_cols_nice,
+        x_cols,
+        x_cols_nice,
+        marker_colours,
+        marker_sizes,
+        best_fit_colours,
+        best_fit_widths,
     ):
         # some label changing
         d_formarkers = data.copy()
         d_formarkers = d_formarkers[[y_col, x_col]].dropna(axis=0)
-        d_formarkers = d_formarkers.rename(columns={y_col: y_col_nice, x_col: x_col_nice})
+        d_formarkers = d_formarkers.rename(
+            columns={y_col: y_col_nice, x_col: x_col_nice}
+        )
         # add markers
         fig.add_trace(
             go.Scatter(
@@ -778,7 +827,6 @@ def scatterplot_layered(
     )
     # output
     return fig
-
 
 
 def barchart(
@@ -1186,9 +1234,23 @@ def subplots_scatterplots(
                 except:
                     print("Error for entity " + str(group) + ", skipping to next")
             if add_horizontal_at_yzero:
-                fig.add_hline(y=0, line_dash="dot", row=nr, col=nc, line_color="black", line_width=2)
+                fig.add_hline(
+                    y=0,
+                    line_dash="dot",
+                    row=nr,
+                    col=nc,
+                    line_color="black",
+                    line_width=2,
+                )
             if add_vertical_at_xzero:
-                fig.add_vline(x=0, line_dash="dot", row=nr, col=nc, line_color="black", line_width=2)
+                fig.add_vline(
+                    x=0,
+                    line_dash="dot",
+                    row=nr,
+                    col=nc,
+                    line_color="black",
+                    line_width=2,
+                )
         # Move to next subplot
         nc += 1
         if nr > maxr:
