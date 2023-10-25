@@ -45,6 +45,50 @@ def telsendmsg(conf="", msg=""):
 
 
 # --- Data
+def outlier_tailends(data, cols_x, perc_trim):
+    # Prelims
+    d = data.copy()  # main untouched data
+    # Trim tail ends
+    round_check = 0
+    for col in cols_x:
+        # flag as non-outlier (but cannot overwrite outlier status flagged using another column)
+        if round_check == 0:
+            d.loc[
+                (d[col] <= d[col].quantile(q=(1 - (perc_trim / 2))))
+                & (d[col] >= d[col].quantile(q=(perc_trim / 2))),
+                "_outlier",
+            ] = 0
+        elif round_check > 0:
+            d.loc[
+                (d[col] <= d[col].quantile(q=(1 - (perc_trim / 2))))
+                & (d[col] >= d[col].quantile(q=(perc_trim / 2)))
+                & (d["_outlier"] == 0),
+                "_outlier",
+            ] = 0
+        d.loc[
+            (d[col] > d[col].quantile(q=(1 - (perc_trim / 2))))
+            | (d[col] < d[col].quantile(q=(perc_trim / 2))),
+            "_outlier",
+        ] = 1
+        round_check += 1
+    # Tabulate outliers
+    print(
+        tabulate(
+            pd.DataFrame(d["_outlier"].value_counts()),
+            tablefmt="psql",
+            headers="keys",
+            showindex="always",
+        )
+    )
+    # Drop outliers
+    d = d[d["_outlier"] == 0].copy()  # outliers = 1
+    # Trim columns
+    for i in ["_outlier"]:
+        del d[i]
+    # Output
+    return d
+
+
 def outlier_isolationforest(data, cols_x, opt_max_samples, opt_threshold):
     # Prelims
     d = data.copy()

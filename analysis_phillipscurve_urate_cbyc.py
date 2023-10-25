@@ -155,7 +155,7 @@ for country, country_nice in tqdm(zip(list_countries_keep, list_countries_keep_n
     df_sub = df[df["country"] == country].copy()
     # OLS
     # Without REER
-    eqn = "corecpi ~ 1 + urate * urate_gap_is_zero + expcpi + corecpi_lag1 + corecpi_lag2 + corecpi_lag3 + corecpi_lag4"
+    eqn = "corecpi ~ 1 + urate * urate_gap_is_zero + expcpi + corecpi_lag1"
     mod_ols, res_ols, params_table_ols, joint_teststats_ols, reg_det_ols = reg_ols(
         df=df_sub, eqn=eqn
     )
@@ -188,7 +188,7 @@ for country, country_nice in tqdm(zip(list_countries_keep, list_countries_keep_n
     )
     # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
     # With REER
-    eqn = "corecpi ~ 1 + urate * urate_gap_is_zero + expcpi + corecpi_lag1 + corecpi_lag2 + corecpi_lag3 + corecpi_lag4 + reer"
+    eqn = "corecpi ~ 1 + urate * urate_gap_is_zero + expcpi + corecpi_lag1 + reer"
     (
         mod_ols_reer,
         res_ols_reer,

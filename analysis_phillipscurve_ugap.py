@@ -122,7 +122,7 @@ list_file_names = []
 # %%
 # POLS
 # Without REER
-eqn = "corecpi ~ 1 + urate_gap_ratio + expcpi + corecpi_lag1 + corecpi_lag2 + corecpi_lag3 + corecpi_lag4"
+eqn = "corecpi ~ 1 + urate_gap_ratio + expcpi + corecpi_lag1"
 mod_pols, res_pols, params_table_pols, joint_teststats_pols, reg_det_pols = reg_ols(
     df=df, eqn=eqn
 )
@@ -146,7 +146,7 @@ fig = heatmap(
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 # With REER
-eqn = "corecpi ~ 1 + urate_gap_ratio + expcpi + corecpi_lag1 + corecpi_lag2 + corecpi_lag3 + corecpi_lag4 + reer"
+eqn = "corecpi ~ 1 + urate_gap_ratio + expcpi + corecpi_lag1 + reer"
 (
     mod_pols_reer,
     res_pols_reer,
@@ -183,9 +183,6 @@ mod_fe, res_fe, params_table_fe, joint_teststats_fe, reg_det_fe = fe_reg(
         "urate_gap_ratio",
         "expcpi",
         "corecpi_lag1",
-        "corecpi_lag2",
-        "corecpi_lag3",
-        "corecpi_lag4",
     ],
     i_col="country",
     t_col="time",
@@ -226,9 +223,6 @@ fig = heatmap(
         "urate_gap_ratio",
         "expcpi",
         "corecpi_lag1",
-        "corecpi_lag2",
-        "corecpi_lag3",
-        "corecpi_lag4",
         "reer",
     ],
     i_col="country",
@@ -263,7 +257,7 @@ fig = heatmap(
 # Without REER
 mod_gmmiv, res_gmmiv, params_table_gmmiv = gmmiv_reg(
     df=df,
-    eqn="corecpi urate_gap_ratio expcpi L(1:4).corecpi | "
+    eqn="corecpi urate_gap_ratio expcpi L1.corecpi | "
     + "endo(corecpi) pred(urate_gap_ratio expcpi) | " 
     + "hqic collapse",
     i_col="country",
@@ -291,7 +285,7 @@ fig = heatmap(
 # With REER
 mod_gmmiv_reer, res_gmmiv_reer, params_table_gmmiv_reer = gmmiv_reg(
     df=df,
-    eqn="corecpi urate_gap_ratio expcpi reer L(1:4).corecpi | "
+    eqn="corecpi urate_gap_ratio expcpi reer L1.corecpi | "
     + "endo(corecpi) pred(urate_gap_ratio expcpi reer) | " 
     + "hqic collapse",
     i_col="country",
@@ -327,9 +321,6 @@ mod_twfe, res_twfe, params_table_twfe, joint_teststats_twfe, reg_det_twfe = fe_r
         "urate_gap_ratio",
         "expcpi",
         "corecpi_lag1",
-        "corecpi_lag2",
-        "corecpi_lag3",
-        "corecpi_lag4",
     ],
     i_col="country",
     t_col="time",
@@ -370,9 +361,6 @@ fig = heatmap(
         "urate_gap_ratio",
         "expcpi",
         "corecpi_lag1",
-        "corecpi_lag2",
-        "corecpi_lag3",
-        "corecpi_lag4",
         "reer",
     ],
     i_col="country",
@@ -410,9 +398,6 @@ mod_re, res_re, params_table_re, joint_teststats_re, reg_det_re = re_reg(
         "urate_gap_ratio",
         "expcpi",
         "corecpi_lag1",
-        "corecpi_lag2",
-        "corecpi_lag3",
-        "corecpi_lag4",
     ],
     i_col="country",
     t_col="time",
@@ -451,9 +436,6 @@ fig = heatmap(
         "urate_gap_ratio",
         "expcpi",
         "corecpi_lag1",
-        "corecpi_lag2",
-        "corecpi_lag3",
-        "corecpi_lag4",
         "reer",
     ],
     i_col="country",

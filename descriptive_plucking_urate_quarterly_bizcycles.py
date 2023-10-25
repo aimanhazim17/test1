@@ -8,6 +8,7 @@ from helper import (
     scatterplot,
     pil_img2pdf,
     outlier_isolationforest,
+    outlier_tailends,
 )
 from helper_plucking import compute_urate_floor
 from datetime import date, timedelta
@@ -187,23 +188,35 @@ def compute_bizcycle_paces(data, entities_label, rows_per_epi):
 
 
 df, df_expcon, df_conexp = compute_bizcycle_paces(
-    data=df, entities_label="country", rows_per_epi=16
+    data=df, entities_label="country", rows_per_epi=None
 )
 df_expcon_avg = df_expcon.groupby("country").agg("mean")
 df_conexp_avg = df_conexp.groupby("country").agg("mean")
 
-df_expcon_trimmed = outlier_isolationforest(
+tailend_threshold = 0.05  # 0.01 0.05 0.1
+df_expcon_trimmed = outlier_tailends(
     data=df_expcon,
     cols_x=["subsequent_contraction_pace", "expansion_pace"],
-    opt_max_samples=int(len(df_expcon) / 4),
-    opt_threshold=0.3,
+    perc_trim=tailend_threshold,
 )
-df_conexp_trimmed = outlier_isolationforest(
+df_conexp_trimmed = outlier_tailends(
     data=df_conexp,
     cols_x=["subsequent_expansion_pace", "contraction_pace"],
-    opt_max_samples=int(len(df_conexp) / 4),
-    opt_threshold=0.3,
+    perc_trim=tailend_threshold,
 )
+
+# df_expcon_trimmed = outlier_isolationforest(
+#     data=df_expcon,
+#     cols_x=["subsequent_contraction_pace", "expansion_pace"],
+#     opt_max_samples=int(len(df_expcon) / 4),
+#     opt_threshold=0.3,
+# )
+# df_conexp_trimmed = outlier_isolationforest(
+#     data=df_conexp,
+#     cols_x=["subsequent_expansion_pace", "contraction_pace"],
+#     opt_max_samples=int(len(df_conexp) / 4),
+#     opt_threshold=0.3,
+# )
 
 # df_expcon_trimmed = df_expcon[
 #     (df_expcon["subsequent_contraction_pace"] >= 0) & (df_expcon["expansion_pace"] <= 0)
@@ -215,6 +228,7 @@ df_conexp_trimmed = outlier_isolationforest(
 
 # %%
 # IV --- Plot them charts
+list_file_names = []
 # %%
 # Exp --> Con
 fig_expcon = scatterplot(
@@ -230,8 +244,9 @@ fig_expcon = scatterplot(
     main_title="Unemployment Rate: Subsequent Contraction Pace vs. Expansion Pace (QoQ SA)",
 )
 file_name = path_output + "urate_quarterly_bizcycles_expcon"
+list_file_names += [file_name]
 fig_expcon.write_image(file_name + ".png")
-telsendimg(conf=tel_config, path=file_name + ".png", cap=file_name)
+# telsendimg(conf=tel_config, path=file_name + ".png", cap=file_name)
 
 # Con --> Exp
 fig_conexp = scatterplot(
@@ -247,8 +262,9 @@ fig_conexp = scatterplot(
     main_title="Unemployment Rate: Subsequent Expansion Pace vs. Contraction Pace (QoQ SA)",
 )
 file_name = path_output + "urate_quarterly_bizcycles_conexp"
+list_file_names += [file_name]
 fig_conexp.write_image(file_name + ".png")
-telsendimg(conf=tel_config, path=file_name + ".png", cap=file_name)
+# telsendimg(conf=tel_config, path=file_name + ".png", cap=file_name)
 
 # %%
 # Exp --> Con (Trimmed outliers)
@@ -265,8 +281,9 @@ fig_expcon_trimmed = scatterplot(
     main_title="Unemployment Rate: Subsequent Contraction Pace vs. Expansion Pace (QoQ SA); Without Outliers",
 )
 file_name = path_output + "urate_quarterly_bizcycles_expcon_trimmed"
+list_file_names += [file_name]
 fig_expcon_trimmed.write_image(file_name + ".png")
-telsendimg(conf=tel_config, path=file_name + ".png", cap=file_name)
+# telsendimg(conf=tel_config, path=file_name + ".png", cap=file_name)
 
 # Con --> Exp (Trimmed outliers)
 fig_conexp_trimmed = scatterplot(
@@ -282,8 +299,9 @@ fig_conexp_trimmed = scatterplot(
     main_title="Unemployment Rate: Subsequent Expansion Pace vs. Contraction Pace (QoQ SA); Without Outliers",
 )
 file_name = path_output + "urate_quarterly_bizcycles_conexp_trimmed"
+list_file_names += [file_name]
 fig_conexp_trimmed.write_image(file_name + ".png")
-telsendimg(conf=tel_config, path=file_name + ".png", cap=file_name)
+# telsendimg(conf=tel_config, path=file_name + ".png", cap=file_name)
 
 # %%
 # Exp --> Con (Country Avg)
@@ -300,8 +318,9 @@ fig_expcon_avg = scatterplot(
     main_title="Unemployment Rate: Subsequent Contraction Pace vs. Expansion Pace (QoQ SA); Country Averages",
 )
 file_name = path_output + "urate_quarterly_bizcycles_expcon_avg"
+list_file_names += [file_name]
 fig_expcon_avg.write_image(file_name + ".png")
-telsendimg(conf=tel_config, path=file_name + ".png", cap=file_name)
+# telsendimg(conf=tel_config, path=file_name + ".png", cap=file_name)
 
 # Con --> Exp (Country Avg)
 fig_conexp_avg = scatterplot(
@@ -317,8 +336,23 @@ fig_conexp_avg = scatterplot(
     main_title="Unemployment Rate: Subsequent Expansion Pace vs. Contraction Pace (QoQ SA); Country Averages",
 )
 file_name = path_output + "urate_quarterly_bizcycles_conexp_avg"
+list_file_names += [file_name]
 fig_conexp_avg.write_image(file_name + ".png")
-telsendimg(conf=tel_config, path=file_name + ".png", cap=file_name)
+# telsendimg(conf=tel_config, path=file_name + ".png", cap=file_name)
+
+# %%
+# Compile into pdf
+pdf_file_name = path_output + "urate_quarterly_bizcycles"
+pil_img2pdf(
+    list_images=list_file_names,
+    extension="png",
+    pdf_name=pdf_file_name
+)
+telsendfiles(
+    conf=tel_config,
+    path=pdf_file_name + ".pdf",
+    cap=pdf_file_name  
+)
 
 # %%
 # X --- Notify
