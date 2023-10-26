@@ -21,6 +21,7 @@ import json
 from dotenv import load_dotenv
 from tqdm import tqdm
 from tabulate import tabulate
+import arch
 
 load_dotenv()
 plt.switch_backend("agg")  # agg
@@ -515,6 +516,34 @@ def gmmiv_reg(
 
 
 # --- TIME SERIES MODELS
+
+
+def est_garch_volatility(
+        df: pd.DataFrame, 
+        col_endog: str,
+        p_choice: int,
+        o_choice: int,
+        q_choice: int,
+        power_choice: int,
+        garch_variant="GARCH",
+        error_dist="ged"
+):
+    # Prelims
+    d = df.copy()
+    # Estimate model
+    mod = arch.arch_model(
+        y=d[col_endog].dropna(),
+        p=p_choice,
+        o=o_choice,
+        q=q_choice,
+        power=power_choice,
+        dist=error_dist,
+        vol=garch_variant
+    )
+    res = mod.fit()
+    vol = pd.DataFrame(res._volatility, columns=[col_endog + "_volatility"])
+    # Output
+    return res, vol
 
 
 def est_varx(

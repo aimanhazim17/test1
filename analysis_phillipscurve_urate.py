@@ -52,6 +52,8 @@ df_expcpi = pd.read_parquet(path_data + "data_macro_quarterly_expcpi.parquet")
 # Merge
 df = df.merge(df_ugap, on=["country", "quarter"], how="outer", validate="one_to_one")
 df = df.merge(df_expcpi, on=["country", "quarter"], how="outer", validate="one_to_one")
+# Sort
+df = df.sort_values(by=["country", "quarter"])
 
 # %%
 # II --- Pre-analysis wrangling

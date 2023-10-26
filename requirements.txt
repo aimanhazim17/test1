@@ -21,3 +21,4 @@ requests
 ipykernel
 localprojections
 pydynpd
+arch

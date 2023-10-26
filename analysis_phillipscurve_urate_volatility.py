@@ -12,6 +12,7 @@ from helper import (
     gmmiv_reg,
     heatmap,
     pil_img2pdf,
+    est_garch_volatility,
 )
 import statsmodels.tsa.api as smt
 from statsmodels.tsa.ar_model import ar_select_order
@@ -84,12 +85,6 @@ df = df[df["country"].isin(list_countries_keep)]
 # Compute indicator for when urate gap is nil
 df.loc[df["urate_gap"] == 0, "urate_gap_is_zero"] = 1
 df.loc[df["urate_gap"] > 0, "urate_gap_is_zero"] = 0
-# Smooth unemployment rate with filter
-for country in list_countries_keep:
-    cycle, trend = smt.hp_filter.hpfilter(
-        df.loc[df["country"] == country, "urate"].dropna(), lamb=1600
-    )
-    df.loc[df["country"] == country, "urate_smoothed"] = trend
 # Transform
 cols_pretransformed = ["rgdp", "m2", "cpi", "corecpi", "maxgepu", "expcpi"]
 cols_levels = ["reer", "ber", "brent", "gepu"]
@@ -97,7 +92,6 @@ cols_rate = [
     "stir",
     "ltir",
     "urate_ceiling",
-    "urate_smoothed",
     "urate",
     "urate_gap",
     "urate_gap_ratio",
@@ -108,11 +102,50 @@ for col in cols_levels:
     df[col] = 100 * ((df[col] / df.groupby("country")[col].shift(4)) - 1)
 for col in cols_rate:
     df[col] = df[col] - df.groupby("country")[col].shift(4)
+# Estimate GARCH volatility
+cols_to_compute_vol = ["urate", "corecpi", "cpi", "expcpi"]
+cols_vol = [i + "_volatility" for i in cols_to_compute_vol]
+count_country = 0
+for country in tqdm(list(df["country"].unique())):
+    df_sub = df[df["country"] == country].copy()
+    df_sub = df_sub[["country", "quarter"] + cols_to_compute_vol].copy()
+    for col in cols_to_compute_vol:
+        # generate series
+        res, vol = est_garch_volatility(
+            df=df_sub,
+            col_endog=col,
+            p_choice=1,
+            o_choice=0,
+            q_choice=1,
+            power_choice=2,
+            garch_variant="GARCH",
+            error_dist="ged",
+        )
+        # find out which periods were the cond volatility estimated for + reset index
+        time_col = pd.DataFrame(
+            df_sub.loc[df_sub[col].notna(), "quarter"], columns=["quarter"]
+        ).reset_index(drop=True)
+        # consolidate for current country
+        df_sub_vol = pd.concat([time_col, vol], axis=1)  # left-right
+        df_sub_vol["country"] = country
+        df_sub = df_sub.merge(df_sub_vol, on=["country", "quarter"], how="left")
+    # drop base variables in volatility frames
+    for col in cols_to_compute_vol:
+        del df_sub[col]    
+    # stack up first
+    if count_country == 0:
+        df_vol = df_sub.copy()
+    elif count_country > 0:
+        df_vol = pd.concat([df_vol, df_sub], axis=0)  # top-down
+    # next
+    count_country += 1
+# merge back into the main frame
+df = df.merge(df_vol, on=["country", "quarter"], how="left")
 # Generate lagged terms for interacted variables
-df["urate_smoothed_int_urate_gap_is_zero"] = df["urate_smoothed"] * df["urate_gap_is_zero"]
+df["urate_vol_int_urate_gap_is_zero"] = df["urate_volatility"] * df["urate_gap_is_zero"]
 # Generate lags
 for lag in range(1, 4 + 1):
-    for col in cols_pretransformed + cols_levels + cols_rate:
+    for col in cols_pretransformed + cols_levels + cols_rate + cols_vol:
         df[col + "_lag" + str(lag)] = df.groupby("country")[col].shift(lag)
 # Trim dates
 df["quarter"] = pd.to_datetime(df["quarter"]).dt.to_period("q")
@@ -135,11 +168,11 @@ list_file_names = []
 # %%
 # POLS
 # Without REER
-eqn = "corecpi ~ 1 + urate_smoothed * urate_gap_is_zero + expcpi + corecpi_lag1"
+eqn = "corecpi_volatility ~ 1 + urate_volatility * urate_gap_is_zero + expcpi_volatility + corecpi_volatility_lag1"
 mod_pols, res_pols, params_table_pols, joint_teststats_pols, reg_det_pols = reg_ols(
     df=df, eqn=eqn
 )
-file_name = path_output + "phillipscurve_urate_smoothed_params_pols"
+file_name = path_output + "phillipscurve_urate_volatility_params_pols"
 list_file_names += [file_name]
 chart_title = "Pooled OLS: Without REER"
 fig = heatmap(
@@ -159,7 +192,7 @@ fig = heatmap(
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 # With REER
-eqn = "corecpi ~ 1 + urate_smoothed * urate_gap_is_zero + expcpi + corecpi_lag1 + reer"
+eqn = "corecpi_volatility ~ 1 + urate_volatility * urate_gap_is_zero + expcpi_volatility + corecpi_volatility_lag1 + reer"
 (
     mod_pols_reer,
     res_pols_reer,
@@ -167,7 +200,7 @@ eqn = "corecpi ~ 1 + urate_smoothed * urate_gap_is_zero + expcpi + corecpi_lag1 
     joint_teststats_pols_reer,
     reg_det_pols_reer,
 ) = reg_ols(df=df, eqn=eqn)
-file_name = path_output + "phillipscurve_urate_smoothed_params_pols_reer"
+file_name = path_output + "phillipscurve_urate_volatility_params_pols_reer"
 list_file_names += [file_name]
 chart_title = "Pooled OLS: With REER"
 fig = heatmap(
@@ -191,13 +224,13 @@ fig = heatmap(
 # Without REER
 mod_fe, res_fe, params_table_fe, joint_teststats_fe, reg_det_fe = fe_reg(
     df=df,
-    y_col="corecpi",
+    y_col="corecpi_volatility",
     x_cols=[
-        "urate_smoothed",
+        "urate_volatility",
         "urate_gap_is_zero",
-        "urate_smoothed_int_urate_gap_is_zero",
-        "expcpi",
-        "corecpi_lag1",
+        "urate_vol_int_urate_gap_is_zero",
+        "expcpi_volatility",
+        "corecpi_volatility_lag1",
     ],
     i_col="country",
     t_col="time",
@@ -205,7 +238,7 @@ mod_fe, res_fe, params_table_fe, joint_teststats_fe, reg_det_fe = fe_reg(
     time_effects=False,
     cov_choice="robust",
 )
-file_name = path_output + "phillipscurve_urate_smoothed_params_fe"
+file_name = path_output + "phillipscurve_urate_volatility_params_fe"
 list_file_names += [file_name]
 chart_title = "FE: Without REER"
 fig = heatmap(
@@ -233,13 +266,13 @@ fig = heatmap(
     reg_det_fe_reer,
 ) = fe_reg(
     df=df,
-    y_col="corecpi",
+    y_col="corecpi_volatility",
     x_cols=[
-        "urate_smoothed",
+        "urate_volatility",
         "urate_gap_is_zero",
-        "urate_smoothed_int_urate_gap_is_zero",
-        "expcpi",
-        "corecpi_lag1",
+        "urate_vol_int_urate_gap_is_zero",
+        "expcpi_volatility",
+        "corecpi_volatility_lag1",
         "reer",
     ],
     i_col="country",
@@ -248,7 +281,7 @@ fig = heatmap(
     time_effects=False,
     cov_choice="robust",
 )
-file_name = path_output + "phillipscurve_urate_smoothed_params_fe_reer"
+file_name = path_output + "phillipscurve_urate_volatility_params_fe_reer"
 list_file_names += [file_name]
 chart_title = "FE: With REER"
 fig = heatmap(
@@ -268,20 +301,19 @@ fig = heatmap(
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 
-
 # %%
 # GMM-IV
 # "n L1.n w k  | gmm(n, 2:4) pred(w k) | onestep nolevel timedumm"
 # Without REER
 mod_gmmiv, res_gmmiv, params_table_gmmiv = gmmiv_reg(
     df=df,
-    eqn="corecpi urate_smoothed urate_gap_is_zero urate_smoothed_int_urate_gap_is_zero expcpi L1.corecpi | "
-    + "endo(corecpi) pred(urate_smoothed urate_gap_is_zero urate_smoothed_int_urate_gap_is_zero expcpi) | " 
+    eqn="corecpi_volatility urate_volatility urate_gap_is_zero urate_vol_int_urate_gap_is_zero expcpi_volatility L1.corecpi_volatility | "
+    + "endo(corecpi_volatility) pred(urate_volatility urate_gap_is_zero urate_vol_int_urate_gap_is_zero expcpi_volatility) | "
     + "hqic collapse",
     i_col="country",
     t_col="time",
 )
-file_name = path_output + "phillipscurve_urate_smoothed_params_gmmiv"
+file_name = path_output + "phillipscurve_urate_volatility_params_gmmiv"
 list_file_names += [file_name]
 chart_title = "GMM-IV: Without REER"
 fig = heatmap(
@@ -303,13 +335,13 @@ fig = heatmap(
 # With REER
 mod_gmmiv_reer, res_gmmiv_reer, params_table_gmmiv_reer = gmmiv_reg(
     df=df,
-    eqn="corecpi urate_smoothed urate_gap_is_zero urate_smoothed_int_urate_gap_is_zero expcpi reer L1.corecpi | "
-    + "endo(corecpi) pred(urate_smoothed urate_gap_is_zero urate_smoothed_int_urate_gap_is_zero expcpi reer) | " 
+    eqn="corecpi_volatility urate_volatility urate_gap_is_zero urate_vol_int_urate_gap_is_zero expcpi_volatility reer L1.corecpi_volatility | "
+    + "endo(corecpi_volatility) pred(urate_volatility urate_gap_is_zero urate_vol_int_urate_gap_is_zero expcpi_volatility reer) | "
     + "hqic collapse",
     i_col="country",
     t_col="time",
 )
-file_name = path_output + "phillipscurve_urate_smoothed_params_gmmiv_reer"
+file_name = path_output + "phillipscurve_urate_volatility_params_gmmiv_reer"
 list_file_names += [file_name]
 chart_title = "GMM-IV: With REER"
 fig = heatmap(
@@ -334,13 +366,13 @@ fig = heatmap(
 # Without REER
 mod_twfe, res_twfe, params_table_twfe, joint_teststats_twfe, reg_det_twfe = fe_reg(
     df=df,
-    y_col="corecpi",
+    y_col="corecpi_volatility",
     x_cols=[
-        "urate_smoothed",
+        "urate_volatility",
         "urate_gap_is_zero",
-        "urate_smoothed_int_urate_gap_is_zero",
-        "expcpi",
-        "corecpi_lag1",
+        "urate_vol_int_urate_gap_is_zero",
+        "expcpi_volatility",
+        "corecpi_volatility_lag1",
     ],
     i_col="country",
     t_col="time",
@@ -348,7 +380,7 @@ mod_twfe, res_twfe, params_table_twfe, joint_teststats_twfe, reg_det_twfe = fe_r
     time_effects=True,
     cov_choice="robust",
 )
-file_name = path_output + "phillipscurve_urate_smoothed_params_twfe"
+file_name = path_output + "phillipscurve_urate_volatility_params_twfe"
 list_file_names += [file_name]
 chart_title = "TWFE: Without REER"
 fig = heatmap(
@@ -376,13 +408,13 @@ fig = heatmap(
     reg_det_twfe_reer,
 ) = fe_reg(
     df=df,
-    y_col="corecpi",
+    y_col="corecpi_volatility",
     x_cols=[
-        "urate_smoothed",
+        "urate_volatility",
         "urate_gap_is_zero",
-        "urate_smoothed_int_urate_gap_is_zero",
-        "expcpi",
-        "corecpi_lag1",
+        "urate_vol_int_urate_gap_is_zero",
+        "expcpi_volatility",
+        "corecpi_volatility_lag1",
         "reer",
     ],
     i_col="country",
@@ -391,7 +423,7 @@ fig = heatmap(
     time_effects=True,
     cov_choice="robust",
 )
-file_name = path_output + "phillipscurve_urate_smoothed_params_twfe_reer"
+file_name = path_output + "phillipscurve_urate_volatility_params_twfe_reer"
 list_file_names += [file_name]
 chart_title = "TWFE: With REER"
 fig = heatmap(
@@ -415,19 +447,19 @@ fig = heatmap(
 # Without REER
 mod_re, res_re, params_table_re, joint_teststats_re, reg_det_re = re_reg(
     df=df,
-    y_col="corecpi",
+    y_col="corecpi_volatility",
     x_cols=[
-        "urate_smoothed",
+        "urate_volatility",
         "urate_gap_is_zero",
-        "urate_smoothed_int_urate_gap_is_zero",
-        "expcpi",
-        "corecpi_lag1",
+        "urate_vol_int_urate_gap_is_zero",
+        "expcpi_volatility",
+        "corecpi_volatility_lag1",
     ],
     i_col="country",
     t_col="time",
     cov_choice="robust",
 )
-file_name = path_output + "phillipscurve_urate_smoothed_params_re"
+file_name = path_output + "phillipscurve_urate_volatility_params_re"
 list_file_names += [file_name]
 chart_title = "RE: Without REER"
 fig = heatmap(
@@ -455,20 +487,20 @@ fig = heatmap(
     reg_det_re_reer,
 ) = re_reg(
     df=df,
-    y_col="corecpi",
+    y_col="corecpi_volatility",
     x_cols=[
-        "urate_smoothed",
+        "urate_volatility",
         "urate_gap_is_zero",
-        "urate_smoothed_int_urate_gap_is_zero",
-        "expcpi",
-        "corecpi_lag1",
+        "urate_vol_int_urate_gap_is_zero",
+        "expcpi_volatility",
+        "corecpi_volatility_lag1",
         "reer",
     ],
     i_col="country",
     t_col="time",
     cov_choice="robust",
 )
-file_name = path_output + "phillipscurve_urate_smoothed_params_re_reer"
+file_name = path_output + "phillipscurve_urate_volatility_params_re_reer"
 list_file_names += [file_name]
 chart_title = "RE: With REER"
 fig = heatmap(
@@ -490,7 +522,7 @@ fig = heatmap(
 
 # %%
 # Compile all heat maps
-file_name_pdf = path_output + "phillipscurve_urate_smoothed_params"
+file_name_pdf = path_output + "phillipscurve_urate_volatility_params"
 pil_img2pdf(list_images=list_file_names, extension="png", pdf_name=file_name_pdf)
 telsendfiles(conf=tel_config, path=file_name_pdf + ".pdf", cap=file_name_pdf)
 
@@ -498,7 +530,7 @@ telsendfiles(conf=tel_config, path=file_name_pdf + ".pdf", cap=file_name_pdf)
 # X --- Notify
 telsendmsg(
     conf=tel_config,
-    msg="global-plucking --- analysis_phillipscurve_urate_smoothed: COMPLETED",
+    msg="global-plucking --- analysis_phillipscurve_urate_volatility: COMPLETED",
 )
 
 # End
