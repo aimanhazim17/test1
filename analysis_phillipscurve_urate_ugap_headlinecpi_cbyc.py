@@ -103,9 +103,6 @@ list_countries_keep_nice = [
     "Brazil",
 ]
 df = df[df["country"].isin(list_countries_keep)]
-# Compute indicator for when urate gap is nil
-df.loc[df["urate_gap"] == 0, "urate_gap_is_zero"] = 1
-df.loc[df["urate_gap"] > 0, "urate_gap_is_zero"] = 0
 # Transform
 cols_pretransformed = ["rgdp", "m2", "cpi", "corecpi", "maxgepu", "expcpi"]
 cols_levels = ["reer", "ber", "brent", "gepu"]
@@ -114,8 +111,6 @@ cols_rate = [
     "ltir",
     "urate_ceiling",
     "urate",
-    "urate_gap",
-    "urate_gap_ratio",
     "privdebt",
     "privdebt_bank",
 ]
@@ -125,7 +120,7 @@ for col in cols_rate:
     df[col] = df[col] - df.groupby("country")[col].shift(4)
 
 # Generate lagged terms for interacted variables
-df["urate_int_urate_gap_is_zero"] = df["urate"] * df["urate_gap_is_zero"]
+df["urate_int_urate_gap"] = df["urate"] * df["urate_gap"]
 # Generate lags
 for lag in range(1, 4 + 1):
     for col in cols_pretransformed + cols_levels + cols_rate:
@@ -150,7 +145,7 @@ heatmaps_annot_fontsize = 12
 list_file_names = []
 # %%
 # Country by country loop
-relevant_cols = ["urate", "urate:urate_gap_is_zero"]
+relevant_cols = ["urate", "urate:urate_gap"]
 sig_countries = []
 sig_countries_reer = []
 params_urate_allcountries = pd.DataFrame(columns=relevant_cols)
@@ -160,7 +155,7 @@ for country, country_nice in tqdm(zip(list_countries_keep, list_countries_keep_n
     df_sub = df[df["country"] == country].copy()
     # OLS
     # Without REER
-    eqn = "corecpi ~ 1 + urate * urate_gap_is_zero + expcpi + corecpi_lag1"
+    eqn = "cpi ~ 1 + urate * urate_gap + expcpi + cpi_lag1"
     mod_ols, res_ols, params_table_ols, joint_teststats_ols, reg_det_ols = reg_ols(
         df=df_sub, eqn=eqn, del_se = False
     )
@@ -180,7 +175,7 @@ for country, country_nice in tqdm(zip(list_countries_keep, list_countries_keep_n
         ],
         axis=0,
     )
-    file_name = path_output + "phillipscurve_urate_params_ols" + "_" + country
+    file_name = path_output + "phillipscurve_urate_ugap_headlinecpi_params_ols" + "_" + country
     list_file_names += [file_name]
     chart_title = "OLS: Without REER" + " (" + country_nice + ")"
     fig = heatmap(
@@ -200,7 +195,7 @@ for country, country_nice in tqdm(zip(list_countries_keep, list_countries_keep_n
     )
     # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
     # With REER
-    eqn = "corecpi ~ 1 + urate * urate_gap_is_zero + expcpi + corecpi_lag1 + reer"
+    eqn = "cpi ~ 1 + urate * urate_gap + expcpi + cpi_lag1 + reer"
     (
         mod_ols_reer,
         res_ols_reer,
@@ -224,7 +219,7 @@ for country, country_nice in tqdm(zip(list_countries_keep, list_countries_keep_n
         ],
         axis=0,
     )
-    file_name = path_output + "phillipscurve_urate_params_ols_reer" + "_" + country
+    file_name = path_output + "phillipscurve_urate_ugap_headlinecpi_params_ols_reer" + "_" + country
     list_file_names += [file_name]
     chart_title = "OLS: With REER" + " (" + country_nice + ")"
     fig = heatmap(
@@ -245,7 +240,7 @@ for country, country_nice in tqdm(zip(list_countries_keep, list_countries_keep_n
     # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 # Full country heatmaps
 # no reer
-file_name = path_output + "phillipscurve_urate_cbyc_params_ols"
+file_name = path_output + "phillipscurve_urate_ugap_headlinecpi_cbyc_params_ols"
 list_file_names += [file_name]
 fig = heatmap(
     input=params_urate_allcountries,
@@ -266,7 +261,7 @@ fig = heatmap(
 # no reer + sig only
 params_urate_allcountries_sigonly = params_urate_allcountries.copy()
 params_urate_allcountries_sigonly.loc[~(params_urate_allcountries_sigonly.index.isin(sig_countries)), relevant_cols] = np.nan
-file_name = path_output + "phillipscurve_urate_cbyc_params_ols_sigonly"
+file_name = path_output + "phillipscurve_urate_ugap_headlinecpi_cbyc_params_ols_sigonly"
 list_file_names += [file_name]
 fig = heatmap(
     input=params_urate_allcountries_sigonly,
@@ -285,7 +280,7 @@ fig = heatmap(
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 # reer
-file_name = path_output + "phillipscurve_urate_cbyc_params_ols_reer"
+file_name = path_output + "phillipscurve_urate_ugap_headlinecpi_cbyc_params_ols_reer"
 list_file_names += [file_name]
 fig = heatmap(
     input=params_urate_allcountries_reer,
@@ -306,7 +301,7 @@ fig = heatmap(
 # reer + sig only
 params_urate_allcountries_reer_sigonly = params_urate_allcountries_reer.copy()
 params_urate_allcountries_reer_sigonly.loc[~(params_urate_allcountries_reer_sigonly.index.isin(sig_countries_reer)), relevant_cols] = np.nan
-file_name = path_output + "phillipscurve_urate_cbyc_params_ols_sigonly_reer"
+file_name = path_output + "phillipscurve_urate_ugap_headlinecpi_cbyc_params_ols_sigonly_reer"
 list_file_names += [file_name]
 fig = heatmap(
     input=params_urate_allcountries_reer_sigonly,
@@ -326,7 +321,7 @@ fig = heatmap(
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title) 
 # %%
 # Compile all heat maps
-file_name_pdf = path_output + "phillipscurve_urate_cbyc_params"
+file_name_pdf = path_output + "phillipscurve_urate_ugap_headlinecpi_cbyc_params"
 pil_img2pdf(list_images=list_file_names, extension="png", pdf_name=file_name_pdf)
 telsendfiles(conf=tel_config, path=file_name_pdf + ".pdf", cap=file_name_pdf)
 
@@ -334,7 +329,7 @@ telsendfiles(conf=tel_config, path=file_name_pdf + ".pdf", cap=file_name_pdf)
 # X --- Notify
 telsendmsg(
     conf=tel_config,
-    msg="global-plucking --- analysis_phillipscurve_urate_cbyc: COMPLETED",
+    msg="global-plucking --- analysis_phillipscurve_urate_ugap_headlinecpi_cbyc: COMPLETED",
 )
 
 # End

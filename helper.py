@@ -330,7 +330,7 @@ def estimate_its_arx(
 # --- Linear regressions
 
 
-def reg_ols(df: pd.DataFrame, eqn: str):
+def reg_ols(df: pd.DataFrame, eqn: str, del_se=True):
     # Work on copy
     d = df.copy()
 
@@ -345,7 +345,8 @@ def reg_ols(df: pd.DataFrame, eqn: str):
     params_table["LowerCI"] = params_table["Parameter"] - 1.96 * params_table["SE"]
     params_table["UpperCI"] = params_table["Parameter"] + 1.96 * params_table["SE"]
 
-    del params_table["SE"]
+    if del_se:
+        del params_table["SE"]
 
     # Return joint test statistics
     joint_teststats = pd.DataFrame(
