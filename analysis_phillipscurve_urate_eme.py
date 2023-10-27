@@ -62,7 +62,7 @@ list_countries_keep = [
     "malaysia",
     # "singapore",
     "thailand",
-    "indonesia",  # no urate data
+    # "indonesia",  # no urate data
     "philippines",  # no urate data
     # "united_states",  # problems with BER
     # "united_kingdom",
@@ -335,80 +335,83 @@ fig = heatmap(
 # %%
 # RE
 # Without REER
-mod_re, res_re, params_table_re, joint_teststats_re, reg_det_re = re_reg(
-    df=df,
-    y_col="corecpi",
-    x_cols=[
-        "urate",
-        "urate_gap_is_zero",
-        "urate_int_urate_gap_is_zero",
-        "expcpi",
-        "corecpi_lag1",
-    ],
-    i_col="country",
-    t_col="time",
-    cov_choice="robust",
-)
-file_name = path_output + "phillipscurve_urate_eme_params_re"
-list_file_names += [file_name]
-chart_title = "RE: Without REER"
-fig = heatmap(
-    input=params_table_re,
-    mask=False,
-    colourmap="vlag",
-    outputfile=file_name + ".png",
-    title=chart_title,
-    lb=params_table_re.min().min(),
-    ub=params_table_re.max().max(),
-    format=".4f",
-    show_annot=True,
-    y_fontsize=heatmaps_y_fontsize,
-    x_fontsize=heatmaps_x_fontsize,
-    title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize
-)
-# telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
-# With REER
-(
-    mod_re_reer,
-    res_re_reer,
-    params_table_re_reer,
-    joint_teststats_re_reer,
-    reg_det_re_reer,
-) = re_reg(
-    df=df,
-    y_col="corecpi",
-    x_cols=[
-        "urate",
-        "urate_gap_is_zero",
-        "urate_int_urate_gap_is_zero",
-        "expcpi",
-        "corecpi_lag1",
-        "reer",
-    ],
-    i_col="country",
-    t_col="time",
-    cov_choice="robust",
-)
-file_name = path_output + "phillipscurve_urate_eme_params_re_reer"
-list_file_names += [file_name]
-chart_title = "RE: With REER"
-fig = heatmap(
-    input=params_table_re_reer,
-    mask=False,
-    colourmap="vlag",
-    outputfile=file_name + ".png",
-    title=chart_title,
-    lb=params_table_re_reer.min().min(),
-    ub=params_table_re_reer.max().max(),
-    format=".4f",
-    show_annot=True,
-    y_fontsize=heatmaps_y_fontsize,
-    x_fontsize=heatmaps_x_fontsize,
-    title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize
-)
-# telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
+try:
+    mod_re, res_re, params_table_re, joint_teststats_re, reg_det_re = re_reg(
+        df=df,
+        y_col="corecpi",
+        x_cols=[
+            "urate",
+            "urate_gap_is_zero",
+            "urate_int_urate_gap_is_zero",
+            "expcpi",
+            "corecpi_lag1",
+        ],
+        i_col="country",
+        t_col="time",
+        cov_choice="robust",
+    )
+    file_name = path_output + "phillipscurve_urate_eme_params_re"
+    list_file_names += [file_name]
+    chart_title = "RE: Without REER"
+    fig = heatmap(
+        input=params_table_re,
+        mask=False,
+        colourmap="vlag",
+        outputfile=file_name + ".png",
+        title=chart_title,
+        lb=params_table_re.min().min(),
+        ub=params_table_re.max().max(),
+        format=".4f",
+        show_annot=True,
+        y_fontsize=heatmaps_y_fontsize,
+        x_fontsize=heatmaps_x_fontsize,
+        title_fontsize=heatmaps_title_fontsize,
+        annot_fontsize=heatmaps_annot_fontsize
+    )
+    # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
+    # With REER
+    (
+        mod_re_reer,
+        res_re_reer,
+        params_table_re_reer,
+        joint_teststats_re_reer,
+        reg_det_re_reer,
+    ) = re_reg(
+        df=df,
+        y_col="corecpi",
+        x_cols=[
+            "urate",
+            "urate_gap_is_zero",
+            "urate_int_urate_gap_is_zero",
+            "expcpi",
+            "corecpi_lag1",
+            "reer",
+        ],
+        i_col="country",
+        t_col="time",
+        cov_choice="robust",
+    )
+    file_name = path_output + "phillipscurve_urate_eme_params_re_reer"
+    list_file_names += [file_name]
+    chart_title = "RE: With REER"
+    fig = heatmap(
+        input=params_table_re_reer,
+        mask=False,
+        colourmap="vlag",
+        outputfile=file_name + ".png",
+        title=chart_title,
+        lb=params_table_re_reer.min().min(),
+        ub=params_table_re_reer.max().max(),
+        format=".4f",
+        show_annot=True,
+        y_fontsize=heatmaps_y_fontsize,
+        x_fontsize=heatmaps_x_fontsize,
+        title_fontsize=heatmaps_title_fontsize,
+        annot_fontsize=heatmaps_annot_fontsize
+    )
+    # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
+except:
+    pass
 
 # %%
 # Compile all heat maps

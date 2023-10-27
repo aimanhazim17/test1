@@ -54,7 +54,7 @@ list_countries_keep = [
     "malaysia",
     # "singapore",
     "thailand",
-    "indonesia",  # no urate data
+    # "indonesia",  # no urate data
     # "philippines",  # no urate data
     # "united_states",  # problems with BER
     # "united_kingdom",
@@ -120,7 +120,7 @@ irf = lp.PanelLPX(
     Y=endog_base,
     X=exog_base,
     response=endog_base,
-    horizon=12,
+    horizon=8,
     lags=1,
     varcov="kernel",
     ci_width=0.95,

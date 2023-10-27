@@ -33,6 +33,8 @@ import analysis_phillipscurve_urate_ugap_ae
 import analysis_phillipscurve_urate_ugap_eme
 import analysis_phillipscurve_urate_ugap_cbyc
 # %%
+import analysis_phillipscurve_slope_urate_ugap
+# %%
 import analysis_phillipscurve_urate_ugap_headlinecpi
 import analysis_phillipscurve_urate_ugap_headlinecpi_ae
 import analysis_phillipscurve_urate_ugap_headlinecpi_eme

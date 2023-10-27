@@ -54,7 +54,7 @@ list_countries_keep = [
     "malaysia",  # short urate and corecpi data
     "singapore",
     "thailand",
-    "indonesia",  # no urate data
+    # "indonesia",  # no urate data
     # "philippines",  # no urate data
     "united_states",  # problems with BER
     "united_kingdom",
@@ -134,7 +134,7 @@ irf_on, irf_off = lp.ThresholdPanelLPX(
     X=exog_base,
     threshold_var="urate_gap_is_zero",
     response=endog_base,
-    horizon=12,
+    horizon=8,
     lags=1,
     varcov="kernel",
     ci_width=0.95,

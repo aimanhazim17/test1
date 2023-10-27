@@ -63,7 +63,7 @@ df_params = pd.read_parquet(
 # %%
 # II --- Pre-analysis wrangling
 # Trim countries
-countries_asean4 = ["malaysia", "thailand", "indonesia", "philippines"]
+countries_asean4 = ["malaysia", "thailand", "philippines"]
 countries_asianie = ["singapore", "south_korea", "hong_kong_sar_china_"]
 countries_bigemerging = ["india", "mexico", "brazil", "chile"]
 countries_adv = [
@@ -113,8 +113,11 @@ df["slope_ub"] = (
     df_params.loc["urate", "UpperCI"]
     + df_params.loc["urate_int_urate_gap", "UpperCI"] * df["urate_gap"]
 )
+df["perc_flattening"] = (
+    100 * ((df["slope"] / df_params.loc["urate", "Parameter"]) - 1)
+)
 df["zero"] = 0
-df = df[["country", "quarter", "slope", "slope_lb", "slope_ub", "zero"]]
+df = df[["country", "quarter", "slope", "slope_lb", "slope_ub", "perc_flattening", "zero"]]
 
 # %%
 # IV --- Plot
@@ -128,7 +131,9 @@ for country_groups, snakecase_group_name, nice_group_name, n_rows, n_cols in tqd
         cols_by_country_groups,
     )
 ):
+    # subset country
     df_sub = df[df["country"].isin(country_groups)].copy()
+    # plot the PC slope
     fig = subplots_linecharts(
         data=df_sub,
         col_group="country",
@@ -145,6 +150,31 @@ for country_groups, snakecase_group_name, nice_group_name, n_rows, n_cols in tqd
     )
     file_name = (
         path_output + "phillipscurve_slope_urate_ugap" + "_" + snakecase_group_name
+    )
+    fig.write_image(file_name + ".png")
+    # telsendimg(
+    #     conf=tel_config,
+    #     path=file_name + ".png",
+    #     cap=file_name
+    # )
+    list_file_names += [file_name]
+    # plot the relative scale of flattening
+    fig = subplots_linecharts(
+        data=df_sub,
+        col_group="country",
+        cols_values=["perc_flattening"],
+        cols_values_nice=["Degree of Flattening"],
+        col_time="quarter",
+        annot_size=11,
+        font_size=11,
+        line_colours=["darkgrey"],
+        line_dashes=["solid"],
+        main_title=("Percentage Change in Estimated Slope Relative to When U-Rate Gap = 0" + " in " + nice_group_name),
+        maxrows=n_rows,
+        maxcols=n_cols,
+    )
+    file_name = (
+        path_output + "phillipscurve_slope_flattening_urate_ugap" + "_" + snakecase_group_name
     )
     fig.write_image(file_name + ".png")
     # telsendimg(

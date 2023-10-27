@@ -54,7 +54,7 @@ list_countries_keep = [
     "malaysia",
     # "singapore",
     "thailand",
-    "indonesia",  # no urate data
+    # "indonesia",  # no urate data
     # "philippines",  # no urate data
     # "united_states",  # problems with BER
     # "united_kingdom",
@@ -139,7 +139,7 @@ for list_endog, list_exog in tqdm(zip(nested_list_endog, nested_list_exog)):
         Y=list_endog,
         X=list_exog,
         response=list_endog,
-        horizon=12,
+        horizon=8,
         lags=1,
         varcov="robust",
         ci_width=0.95,
