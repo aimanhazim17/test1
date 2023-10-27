@@ -205,7 +205,7 @@ fig = heatmap(
     annot_fontsize=heatmaps_annot_fontsize
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
-# With REER
+# With REER (benchmark model)
 (
     mod_fe_reer,
     res_fe_reer,
@@ -248,6 +248,7 @@ fig = heatmap(
     annot_fontsize=heatmaps_annot_fontsize
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
+params_table_fe_reer.to_parquet(file_name + ".parquet")
 
 # %%
 # GMM-IV
