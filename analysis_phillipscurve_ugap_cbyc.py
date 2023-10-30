@@ -108,10 +108,10 @@ cols_levels = ["reer", "ber", "brent", "gepu"]
 cols_rate = [
     "stir",
     "ltir",
-    "urate_ceiling",
-    "urate",
-    "urate_gap",
-    "urate_gap_ratio",
+    # "urate_ceiling",
+    # "urate",
+    # "urate_gap",
+    # "urate_gap_ratio",
     "privdebt",
     "privdebt_bank",
 ]
@@ -152,16 +152,16 @@ for country, country_nice in tqdm(zip(list_countries_keep, list_countries_keep_n
     df_sub = df[df["country"] == country].copy()
     # OLS
     # Without REER
-    eqn = "corecpi ~ 1 + urate_gap_ratio + expcpi + corecpi_lag1"
+    eqn = "corecpi ~ 1 + urate_gap + expcpi + corecpi_lag1"
     mod_ols, res_ols, params_table_ols, joint_teststats_ols, reg_det_ols = reg_ols(
         df=df_sub, eqn=eqn
     )
     params_ugap_allcountries = pd.concat(
         [
             params_ugap_allcountries,
-            pd.DataFrame(params_table_ols.loc["urate_gap_ratio"])
+            pd.DataFrame(params_table_ols.loc["urate_gap"])
             .transpose()
-            .rename(index={"urate_gap_ratio": country}),
+            .rename(index={"urate_gap": country}),
         ],
         axis=0,
     )
@@ -185,7 +185,7 @@ for country, country_nice in tqdm(zip(list_countries_keep, list_countries_keep_n
     )
     # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
     # With REER
-    eqn = "corecpi ~ 1 + urate_gap_ratio + expcpi + corecpi_lag1 + reer"
+    eqn = "corecpi ~ 1 + urate_gap + expcpi + corecpi_lag1 + reer"
     (
         mod_ols_reer,
         res_ols_reer,
@@ -196,9 +196,9 @@ for country, country_nice in tqdm(zip(list_countries_keep, list_countries_keep_n
     params_ugap_allcountries_reer = pd.concat(
         [
             params_ugap_allcountries_reer,
-            pd.DataFrame(params_table_ols_reer.loc["urate_gap_ratio"])
+            pd.DataFrame(params_table_ols_reer.loc["urate_gap"])
             .transpose()
-            .rename(index={"urate_gap_ratio": country}),
+            .rename(index={"urate_gap": country}),
         ],
         axis=0,
     )

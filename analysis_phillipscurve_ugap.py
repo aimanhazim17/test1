@@ -87,10 +87,10 @@ cols_levels = ["reer", "ber", "brent", "gepu"]
 cols_rate = [
     "stir",
     "ltir",
-    "urate_ceiling",
-    "urate",
-    "urate_gap",
-    "urate_gap_ratio",
+    # "urate_ceiling",
+    # "urate",
+    # "urate_gap",
+    # "urate_gap_ratio",
     "privdebt",
     "privdebt_bank",
 ]
@@ -124,7 +124,7 @@ list_file_names = []
 # %%
 # POLS
 # Without REER
-eqn = "corecpi ~ 1 + urate_gap_ratio + expcpi + corecpi_lag1"
+eqn = "corecpi ~ 1 + urate_gap + expcpi + corecpi_lag1"
 mod_pols, res_pols, params_table_pols, joint_teststats_pols, reg_det_pols = reg_ols(
     df=df, eqn=eqn
 )
@@ -148,7 +148,7 @@ fig = heatmap(
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 # With REER
-eqn = "corecpi ~ 1 + urate_gap_ratio + expcpi + corecpi_lag1 + reer"
+eqn = "corecpi ~ 1 + urate_gap + expcpi + corecpi_lag1 + reer"
 (
     mod_pols_reer,
     res_pols_reer,
@@ -182,7 +182,7 @@ mod_fe, res_fe, params_table_fe, joint_teststats_fe, reg_det_fe = fe_reg(
     df=df,
     y_col="corecpi",
     x_cols=[
-        "urate_gap_ratio",
+        "urate_gap",
         "expcpi",
         "corecpi_lag1",
     ],
@@ -222,7 +222,7 @@ fig = heatmap(
     df=df,
     y_col="corecpi",
     x_cols=[
-        "urate_gap_ratio",
+        "urate_gap",
         "expcpi",
         "corecpi_lag1",
         "reer",
@@ -259,8 +259,8 @@ fig = heatmap(
 # Without REER
 mod_gmmiv, res_gmmiv, params_table_gmmiv = gmmiv_reg(
     df=df,
-    eqn="corecpi urate_gap_ratio expcpi L1.corecpi | "
-    + "endo(corecpi) pred(urate_gap_ratio expcpi) | " 
+    eqn="corecpi urate_gap expcpi L1.corecpi | "
+    + "endo(corecpi) pred(urate_gap expcpi) | " 
     + "hqic collapse",
     i_col="country",
     t_col="time",
@@ -287,8 +287,8 @@ fig = heatmap(
 # With REER
 mod_gmmiv_reer, res_gmmiv_reer, params_table_gmmiv_reer = gmmiv_reg(
     df=df,
-    eqn="corecpi urate_gap_ratio expcpi reer L1.corecpi | "
-    + "endo(corecpi) pred(urate_gap_ratio expcpi reer) | " 
+    eqn="corecpi urate_gap expcpi reer L1.corecpi | "
+    + "endo(corecpi) pred(urate_gap expcpi reer) | " 
     + "hqic collapse",
     i_col="country",
     t_col="time",
@@ -320,7 +320,7 @@ mod_twfe, res_twfe, params_table_twfe, joint_teststats_twfe, reg_det_twfe = fe_r
     df=df,
     y_col="corecpi",
     x_cols=[
-        "urate_gap_ratio",
+        "urate_gap",
         "expcpi",
         "corecpi_lag1",
     ],
@@ -360,7 +360,7 @@ fig = heatmap(
     df=df,
     y_col="corecpi",
     x_cols=[
-        "urate_gap_ratio",
+        "urate_gap",
         "expcpi",
         "corecpi_lag1",
         "reer",
@@ -397,7 +397,7 @@ mod_re, res_re, params_table_re, joint_teststats_re, reg_det_re = re_reg(
     df=df,
     y_col="corecpi",
     x_cols=[
-        "urate_gap_ratio",
+        "urate_gap",
         "expcpi",
         "corecpi_lag1",
     ],
@@ -435,7 +435,7 @@ fig = heatmap(
     df=df,
     y_col="corecpi",
     x_cols=[
-        "urate_gap_ratio",
+        "urate_gap",
         "expcpi",
         "corecpi_lag1",
         "reer",
