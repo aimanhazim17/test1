@@ -179,7 +179,7 @@ def compute_bizcycle_paces(data, entities_label, rows_per_epi):
             df_sub = pd.concat([df_sub_first, df_sub_last], axis=1)  # left-right
             # now compute amplitudes
             df_sub[col_choice + "_amplitude"] = df_sub[col_choice + "_last"] - df_sub[col_choice + "_first"] 
-            df_sub = df_sub[col_choice + "_amplitude"]
+            df_sub = pd.DataFrame(df_sub[col_choice + "_amplitude"])
             df_consol = pd.concat([df_consol, df_sub], axis=0)  # top-down
             # expcon frame
             expansions = df_sub.iloc[::2].reset_index(drop=True)

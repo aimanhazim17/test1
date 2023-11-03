@@ -162,6 +162,7 @@ def compute_bizcycle_paces(data, entities_label, rows_per_epi):
         else:
             df_sub = df_sub[[col_choice + "_pace", col_choice + "_epi"]]
             df_sub = df_sub.groupby(col_choice + "_epi").agg("mean")
+            df_sub = pd.DataFrame(df_sub)
             df_consol = pd.concat([df_consol, df_sub], axis=0)
             # expcon frame
             expansions = df_sub.iloc[::2].reset_index(drop=True)
