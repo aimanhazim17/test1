@@ -99,17 +99,19 @@ def compute_bizcycle_paces(data, entities_label, rows_per_epi):
     df_consol = pd.DataFrame(
         columns=list(df.columns)
         + [
-            col_choice + "peak",
-            col_choice + "trough",
-            col_choice + "epi",
-            col_choice + "pace",
+            col_choice + "_peak",
+            col_choice + "_trough",
+            col_choice + "_epi",
+            col_choice + "_amplitude",
+            col_choice + "_first",
+            col_choice + "_last",
         ]
-    )
+    )  # instead of pace, we want amplitude, first, and last
     df_expcon_consol = pd.DataFrame(
-        columns=[entities_label, "expansion_pace", "subsequent_contraction_pace"]
+        columns=[entities_label, "expansion_amplitude", "subsequent_contraction_amplitude"]
     )
     df_conexp_consol = pd.DataFrame(
-        columns=[entities_label, "contraction_pace", "subsequent_expansion_pace"]
+        columns=[entities_label, "contraction_amplitude", "subsequent_expansion_amplitude"]
     )
     # list of countries
     list_entities = list(df[entities_label].unique())
@@ -160,16 +162,32 @@ def compute_bizcycle_paces(data, entities_label, rows_per_epi):
         if df_sub[col_choice + "_epi"].max() == 0:
             pass
         else:
-            df_sub = df_sub[[col_choice + "_pace", col_choice + "_epi"]]
-            df_sub = df_sub.groupby(col_choice + "_epi").agg("mean")
-            df_consol = pd.concat([df_consol, df_sub], axis=0)
+            df_sub = df_sub[
+                [col_choice, col_choice + "_epi"]
+            ]  # instead of pace, keep the raw input
+            # Now generate generate first and last observation per episode
+            df_sub_first = (
+                df_sub.groupby(col_choice + "_epi")
+                .first()
+                .rename(columns={col_choice: col_choice + "_first"})
+            )
+            df_sub_last = (
+                df_sub.groupby(col_choice + "_epi")
+                .last()
+                .rename(columns={col_choice: col_choice + "_last"})
+            )
+            df_sub = pd.concat([df_sub_first, df_sub_last], axis=1)  # left-right
+            # now compute amplitudes
+            df_sub[col_choice + "_amplitude"] = df_sub[col_choice + "_last"] - df_sub[col_choice + "_first"] 
+            df_sub = df_sub[col_choice + "_amplitude"]
+            df_consol = pd.concat([df_consol, df_sub], axis=0)  # top-down
             # expcon frame
             expansions = df_sub.iloc[::2].reset_index(drop=True)
             subsequent_contractions = df_sub.iloc[1::2].reset_index(drop=True)
             df_expcon = pd.concat(
                 [expansions, subsequent_contractions], axis=1
             ).dropna()
-            df_expcon.columns = ["expansion_pace", "subsequent_contraction_pace"]
+            df_expcon.columns = ["expansion_amplitude", "subsequent_contraction_amplitude"]
             df_expcon[entities_label] = entity
             df_expcon_consol = pd.concat([df_expcon_consol, df_expcon], axis=0)
             # conexp frame
@@ -178,7 +196,7 @@ def compute_bizcycle_paces(data, entities_label, rows_per_epi):
             df_conexp = pd.concat(
                 [contractions, subsequent_expansions], axis=1
             ).dropna()
-            df_conexp.columns = ["contraction_pace", "subsequent_expansion_pace"]
+            df_conexp.columns = ["contraction_amplitude", "subsequent_expansion_amplitude"]
             df_conexp[entities_label] = entity
             df_conexp_consol = pd.concat([df_conexp_consol, df_conexp], axis=0)
         # next
@@ -196,33 +214,33 @@ df_conexp_avg = df_conexp.groupby("country").agg("mean")
 tailend_threshold = 0.05  # 0.01 0.05 0.1
 df_expcon_trimmed = outlier_tailends(
     data=df_expcon,
-    cols_x=["subsequent_contraction_pace", "expansion_pace"],
+    cols_x=["subsequent_contraction_amplitude", "expansion_amplitude"],
     perc_trim=tailend_threshold,
 )
 df_conexp_trimmed = outlier_tailends(
     data=df_conexp,
-    cols_x=["subsequent_expansion_pace", "contraction_pace"],
+    cols_x=["subsequent_expansion_amplitude", "contraction_amplitude"],
     perc_trim=tailend_threshold,
 )
 
 # df_expcon_trimmed = outlier_isolationforest(
 #     data=df_expcon,
-#     cols_x=["subsequent_contraction_pace", "expansion_pace"],
+#     cols_x=["subsequent_contraction_amplitude", "expansion_amplitude"],
 #     opt_max_samples=int(len(df_expcon) / 4),
 #     opt_threshold=0.3,
 # )
 # df_conexp_trimmed = outlier_isolationforest(
 #     data=df_conexp,
-#     cols_x=["subsequent_expansion_pace", "contraction_pace"],
+#     cols_x=["subsequent_expansion_amplitude", "contraction_amplitude"],
 #     opt_max_samples=int(len(df_conexp) / 4),
 #     opt_threshold=0.3,
 # )
 
 # df_expcon_trimmed = df_expcon[
-#     (df_expcon["subsequent_contraction_pace"] >= 0) & (df_expcon["expansion_pace"] <= 0)
+#     (df_expcon["subsequent_contraction_amplitude"] >= 0) & (df_expcon["expansion_amplitude"] <= 0)
 # ].copy()
 # df_conexp_trimmed = df_conexp[
-#     (df_conexp["subsequent_expansion_pace"] <= 0) & (df_conexp["contraction_pace"] >= 0)
+#     (df_conexp["subsequent_expansion_amplitude"] <= 0) & (df_conexp["contraction_amplitude"] >= 0)
 # ].copy()
 
 
@@ -233,15 +251,15 @@ list_file_names = []
 # Exp --> Con
 fig_expcon = scatterplot(
     data=df_expcon,
-    y_col="subsequent_contraction_pace",
-    y_col_nice="Subsequent Contraction Pace",
-    x_col="expansion_pace",
-    x_col_nice="Expansion Pace",
+    y_col="subsequent_contraction_amplitude",
+    y_col_nice="Subsequent Contraction Amplitude",
+    x_col="expansion_amplitude",
+    x_col_nice="Expansion Amplitude",
     marker_colour="black",
     marker_size=9,
     best_fit_colour="black",
     best_fit_width=3,
-    main_title="Unemployment Rate: Subsequent Contraction Pace vs. Expansion Pace (QoQ SA)",
+    main_title="Unemployment Rate: Subsequent Contraction Amplitude vs. Expansion Amplitude",
 )
 file_name = path_output + "urate_quarterly_bizcycles_amplitude_expcon"
 list_file_names += [file_name]
@@ -251,15 +269,15 @@ fig_expcon.write_image(file_name + ".png")
 # Con --> Exp
 fig_conexp = scatterplot(
     data=df_conexp,
-    y_col="subsequent_expansion_pace",
-    y_col_nice="Subsequent Expansion Pace",
-    x_col="contraction_pace",
-    x_col_nice="Contraction Pace",
+    y_col="subsequent_expansion_amplitude",
+    y_col_nice="Subsequent Expansion Amplitude",
+    x_col="contraction_amplitude",
+    x_col_nice="Contraction Amplitude",
     marker_colour="crimson",
     marker_size=9,
     best_fit_colour="crimson",
     best_fit_width=3,
-    main_title="Unemployment Rate: Subsequent Expansion Pace vs. Contraction Pace (QoQ SA)",
+    main_title="Unemployment Rate: Subsequent Expansion Amplitude vs. Contraction Amplitude",
 )
 file_name = path_output + "urate_quarterly_bizcycles_amplitude_conexp"
 list_file_names += [file_name]
@@ -270,15 +288,15 @@ fig_conexp.write_image(file_name + ".png")
 # Exp --> Con (Trimmed outliers)
 fig_expcon_trimmed = scatterplot(
     data=df_expcon_trimmed,
-    y_col="subsequent_contraction_pace",
-    y_col_nice="Subsequent Contraction Pace",
-    x_col="expansion_pace",
-    x_col_nice="Expansion Pace",
+    y_col="subsequent_contraction_amplitude",
+    y_col_nice="Subsequent Contraction Amplitude",
+    x_col="expansion_amplitude",
+    x_col_nice="Expansion Amplitude",
     marker_colour="black",
     marker_size=9,
     best_fit_colour="black",
     best_fit_width=3,
-    main_title="Unemployment Rate: Subsequent Contraction Pace vs. Expansion Pace (QoQ SA); Without Outliers",
+    main_title="Unemployment Rate: Subsequent Contraction Amplitude vs. Expansion Amplitude; Without Outliers",
 )
 file_name = path_output + "urate_quarterly_bizcycles_amplitude_expcon_trimmed"
 list_file_names += [file_name]
@@ -288,15 +306,15 @@ fig_expcon_trimmed.write_image(file_name + ".png")
 # Con --> Exp (Trimmed outliers)
 fig_conexp_trimmed = scatterplot(
     data=df_conexp_trimmed,
-    y_col="subsequent_expansion_pace",
-    y_col_nice="Subsequent Expansion Pace",
-    x_col="contraction_pace",
-    x_col_nice="Contraction Pace",
+    y_col="subsequent_expansion_amplitude",
+    y_col_nice="Subsequent Expansion Amplitude",
+    x_col="contraction_amplitude",
+    x_col_nice="Contraction Amplitude",
     marker_colour="crimson",
     marker_size=9,
     best_fit_colour="crimson",
     best_fit_width=3,
-    main_title="Unemployment Rate: Subsequent Expansion Pace vs. Contraction Pace (QoQ SA); Without Outliers",
+    main_title="Unemployment Rate: Subsequent Expansion Amplitude vs. Contraction Amplitude; Without Outliers",
 )
 file_name = path_output + "urate_quarterly_bizcycles_amplitude_conexp_trimmed"
 list_file_names += [file_name]
@@ -307,15 +325,15 @@ fig_conexp_trimmed.write_image(file_name + ".png")
 # Exp --> Con (Country Avg)
 fig_expcon_avg = scatterplot(
     data=df_expcon_avg,
-    y_col="subsequent_contraction_pace",
-    y_col_nice="Subsequent Contraction Pace",
-    x_col="expansion_pace",
-    x_col_nice="Expansion Pace",
+    y_col="subsequent_contraction_amplitude",
+    y_col_nice="Subsequent Contraction Amplitude",
+    x_col="expansion_amplitude",
+    x_col_nice="Expansion Amplitude",
     marker_colour="black",
     marker_size=9,
     best_fit_colour="black",
     best_fit_width=3,
-    main_title="Unemployment Rate: Subsequent Contraction Pace vs. Expansion Pace (QoQ SA); Country Averages",
+    main_title="Unemployment Rate: Subsequent Contraction Amplitude vs. Expansion Amplitude; Country Averages",
 )
 file_name = path_output + "urate_quarterly_bizcycles_amplitude_expcon_avg"
 list_file_names += [file_name]
@@ -325,15 +343,15 @@ fig_expcon_avg.write_image(file_name + ".png")
 # Con --> Exp (Country Avg)
 fig_conexp_avg = scatterplot(
     data=df_conexp_avg,
-    y_col="subsequent_expansion_pace",
-    y_col_nice="Subsequent Expansion Pace",
-    x_col="contraction_pace",
-    x_col_nice="Contraction Pace",
+    y_col="subsequent_expansion_amplitude",
+    y_col_nice="Subsequent Expansion Amplitude",
+    x_col="contraction_amplitude",
+    x_col_nice="Contraction Amplitude",
     marker_colour="crimson",
     marker_size=9,
     best_fit_colour="crimson",
     best_fit_width=3,
-    main_title="Unemployment Rate: Subsequent Expansion Pace vs. Contraction Pace (QoQ SA); Country Averages",
+    main_title="Unemployment Rate: Subsequent Expansion Amplitude vs. Contraction Amplitude; Country Averages",
 )
 file_name = path_output + "urate_quarterly_bizcycles_amplitude_conexp_avg"
 list_file_names += [file_name]
@@ -343,16 +361,8 @@ fig_conexp_avg.write_image(file_name + ".png")
 # %%
 # Compile into pdf
 pdf_file_name = path_output + "urate_quarterly_bizcycles_amplitude"
-pil_img2pdf(
-    list_images=list_file_names,
-    extension="png",
-    pdf_name=pdf_file_name
-)
-telsendfiles(
-    conf=tel_config,
-    path=pdf_file_name + ".pdf",
-    cap=pdf_file_name  
-)
+pil_img2pdf(list_images=list_file_names, extension="png", pdf_name=pdf_file_name)
+telsendfiles(conf=tel_config, path=pdf_file_name + ".pdf", cap=pdf_file_name)
 
 # %%
 # X --- Notify
