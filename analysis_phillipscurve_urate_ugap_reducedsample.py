@@ -470,6 +470,45 @@ fig = heatmap(
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 
 # %%
+# Compile all log likelihoods
+df_loglik = pd.DataFrame(
+    {
+        "Model": [
+            "POLS: Without REER",
+            "POLS: With REER",
+            "FE: Without REER",
+            "FE: With REER"
+        ],
+        "Log-Likelihood": [
+            res_pols.llf,
+            res_pols_reer.llf,
+            res_fe.loglik,
+            res_fe_reer.loglik
+        ]
+    }
+    )
+df_loglik = pd.DataFrame(df_loglik.set_index("Model"))
+file_name = path_output + "phillipscurve_urate_ugap_reducedsample_loglik"
+list_file_names += [file_name]
+chart_title = "Log-Likelihood of Estimated Models (Excluding MYS, IND, BRA)"
+fig = heatmap(
+    input=df_loglik,
+    mask=False,
+    colourmap="vlag",
+    outputfile=file_name + ".png",
+    title=chart_title, 
+    lb=df_loglik.min().min(),
+    ub=df_loglik.max().max(),
+    format=".4f",
+    show_annot=True,
+    y_fontsize=heatmaps_y_fontsize,
+    x_fontsize=heatmaps_x_fontsize,
+    title_fontsize=heatmaps_title_fontsize,
+    annot_fontsize=heatmaps_annot_fontsize
+)
+# telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
+
+# %%
 # Compile all heat maps
 file_name_pdf = path_output + "phillipscurve_urate_ugap_reducedsample_params"
 pil_img2pdf(list_images=list_file_names, extension="png", pdf_name=file_name_pdf)
