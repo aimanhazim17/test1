@@ -104,7 +104,7 @@ for col in cols_levels:
     df[col] = 100 * ((df[col] / df.groupby("country")[col].shift(4)) - 1)
 for col in cols_rate:
     df[col] = df[col] - df.groupby("country")[col].shift(4)
-# Generate lagged terms for interacted variables
+# Generate interacted variables
 df["urate_int_urate_gap"] = df["urate"] * df["urate_gap"]
 df["urate_int_urate_gap_usa"] = df["urate_usa"] * df["urate_gap_usa"]
 # Generate lags

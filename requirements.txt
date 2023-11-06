@@ -22,3 +22,4 @@ ipykernel
 localprojections
 pydynpd
 arch
+xgboost

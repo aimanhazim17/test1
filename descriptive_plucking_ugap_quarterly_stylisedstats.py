@@ -6,6 +6,7 @@ from helper import (
     telsendimg,
     telsendmsg,
     subplots_scatterplots,
+    scatterplot,
     pil_img2pdf,
 )
 from helper_plucking import compute_urate_floor
@@ -79,7 +80,7 @@ df = df.sort_values(by=["country", "quarter"])
 #     "brazil",
 # ]
 # df = df[df["country"].isin(list_countries_keep)]
-countries_asean4 = ["malaysia", "thailand", "indonesia", "philippines"] 
+countries_asean4 = ["malaysia", "thailand", "indonesia", "philippines"]
 countries_asianie = ["singapore", "south_korea", "hong_kong_sar_china_"]
 countries_bigemerging = ["china", "india", "mexico", "brazil", "chile"]
 countries_adv = [
@@ -95,6 +96,26 @@ list_countries_keep = (
     countries_adv + countries_asianie + countries_bigemerging + countries_asean4
 )
 df = df[df["country"].isin(list_countries_keep)]
+# Generate change in inflation rates
+cols_to_plot = [
+    "corecpi",
+    "cpi",
+    "expcpi",
+    "urate",
+    "urate_gap",
+    "urate_ceiling",
+    "rgdp",
+]
+for col in cols_to_plot:
+    df[col + "_change"] = df[col] - df.groupby("country")[col].shift(
+        1
+    )  # first difference in YoY growth rates
+# Generate lags
+cols_to_plot_change = [i + "_change" for i in cols_to_plot]
+cols_to_plot = cols_to_plot + cols_to_plot_change
+for forward in range(1, 4 + 1):
+    for col in cols_to_plot:
+        df[col + "_forward" + str(forward)] = df.groupby("country")[col].shift(-1 * forward)
 # Generate lists for charting
 nested_list_country_groups = [
     countries_asean4,
@@ -110,10 +131,57 @@ cols_by_country_groups = [2, 2, 3, 3]
 # %%
 # III --- Plot charts
 # %%
-# III --- Plot by choice of y-axis
-cols_y = ["corecpi", "cpi", "rgdp", "expcpi"]
-cols_y_nice = ["Core Inflation", "Inflation", "RGDP Growth", "Expected Inflation"]
-plot_colours = ["red", "crimson", "blue", "green"]
+# Settings
+cols_y = [
+    "corecpi",
+    "cpi",
+    "rgdp",
+    "expcpi",
+    "corecpi_change",
+    "cpi_change",
+    "rgdp_change",
+    "expcpi_change",
+] + [
+    "corecpi_forward1",
+    "cpi_forward1",
+    "rgdp_forward1",
+    "expcpi_forward1",
+    "corecpi_change_forward1",
+    "cpi_change_forward1",
+    "rgdp_change_forward1",
+    "expcpi_change_forward1",
+]
+cols_y_nice = [
+    "Core Inflation",
+    "Inflation",
+    "RGDP Growth",
+    "Expected Inflation",
+    "Change in Core Inflation",
+    "Change in Inflation",
+    "Change in RGDP Growth",
+    "Change in Expected Inflation",
+] + [
+    "Core Inflation (+1Q)",
+    "Inflation (+1Q)",
+    "RGDP Growth (+1Q)",
+    "Expected Inflation (+1Q)",
+    "Change in Core Inflation (+1Q)",
+    "Change in Inflation (+1Q)",
+    "Change in RGDP Growth (+1Q)",
+    "Change in Expected Inflation (+1Q)",
+]
+plot_colours = [
+    "red",
+    "crimson",
+    "blue",
+    "green",
+    "orange",
+    "peru",
+    "cadetblue",
+    "darkseagreen",
+] * 2
+# %%
+# Plot by choice of y-axis
 for col_y, col_y_nice, plot_colour in zip(cols_y, cols_y_nice, plot_colours):
     list_file_names = []
     for country_groups, snakecase_group_name, nice_group_name, n_rows, n_cols in tqdm(
@@ -145,7 +213,7 @@ for col_y, col_y_nice, plot_colour in zip(cols_y, cols_y_nice, plot_colours):
             maxrows=n_rows,
             maxcols=n_cols,
             add_horizontal_at_yzero=False,
-            add_vertical_at_xzero=False
+            add_vertical_at_xzero=False,
         )
         file_name = (
             path_output
@@ -164,7 +232,37 @@ for col_y, col_y_nice, plot_colour in zip(cols_y, cols_y_nice, plot_colours):
     pdf_file_name = path_output + "stylised_stats_plucking_ugap_quarterly_" + col_y
     pil_img2pdf(list_images=list_file_names, extension="png", pdf_name=pdf_file_name)
     telsendfiles(conf=tel_config, path=pdf_file_name + ".pdf", cap=pdf_file_name)
-
+# %%
+# Pool all observations in one chart
+list_file_names = []
+for col_y, col_y_nice, plot_colour in tqdm(zip(cols_y, cols_y_nice, plot_colours)):
+    df_sub = df[[col_y, "urate_gap"]].copy()
+    df_sub = df_sub.dropna(axis=0)
+    fig = scatterplot(
+        data=df_sub,
+        y_col=col_y,
+        y_col_nice=col_y_nice,
+        x_col="urate_gap",
+        x_col_nice="U-Rate Gap",
+        marker_colour=plot_colour,
+        marker_size=6,
+        best_fit_colour=plot_colour,
+        best_fit_width=2,
+        main_title="Quarterly estimated U-rate gap and " + col_y_nice,
+    )
+    file_name = (
+        path_output + "stylised_stats_plucking_ugap_quarterly_" + col_y + "_" + "pooled"
+    )
+    fig.write_image(file_name + ".png")
+    # telsendimg(
+    #     conf=tel_config,
+    #     path=file_name + ".png",
+    #     cap=file_name
+    # )
+    list_file_names += [file_name]
+pdf_file_name = path_output + "stylised_stats_plucking_ugap_quarterly_" + "pooled"
+pil_img2pdf(list_images=list_file_names, extension="png", pdf_name=pdf_file_name)
+telsendfiles(conf=tel_config, path=pdf_file_name + ".pdf", cap=pdf_file_name)
 
 # %%
 # X --- Notify

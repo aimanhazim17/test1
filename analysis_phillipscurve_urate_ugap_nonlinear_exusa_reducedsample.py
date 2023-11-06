@@ -57,15 +57,22 @@ df = df.sort_values(by=["country", "quarter"])
 
 # %%
 # II --- Pre-analysis wrangling
+# Generate USA u-rate as separate column
+df_usa = df.loc[
+    df["country"] == "united_states", ["quarter", "urate", "urate_gap"]
+].copy()
+df_usa = df_usa.rename(columns={"urate": "urate_usa", "urate_gap": "urate_gap_usa"})
+df_usa = df_usa.dropna(axis=0)
+df = df.merge(df_usa, how="left", on="quarter")
 # Trim countries
 list_countries_keep = [
     "australia",
-    "malaysia",
+    # "malaysia",
     "singapore",
     "thailand",
-    "indonesia",  # no urate data
+    # "indonesia",  # no urate data
     "philippines",  # no urate data
-    "united_states",  # problems with BER
+    # "united_states",  # problems with BER
     "united_kingdom",
     "germany",
     "france",
@@ -74,33 +81,38 @@ list_countries_keep = [
     "south_korea",
     # "taiwan",  # not covered country
     # "hong_kong_sar_china_",  # no core inflation
-    "india",  # no urate data
+    # "india",  # no urate data
     # "china",  # special case
     "chile",
     "mexico",
-    "brazil",
+    # "brazil",
 ]
 df = df[df["country"].isin(list_countries_keep)]
 # Transform
 cols_pretransformed = ["rgdp", "m2", "cpi", "corecpi", "maxgepu", "expcpi"]
 cols_levels = ["reer", "ber", "brent", "gepu"]
-cols_rate = [
-    "stir",
-    "ltir",
-    # "urate_ceiling",
-    # "urate",
-    # "urate_gap",
-    # "urate_gap_ratio",
-    "privdebt",
-    "privdebt_bank",
-]
+cols_rate = ["stir", "ltir", "urate_ceiling", "urate", "privdebt", "privdebt_bank"]
 for col in cols_levels:
     df[col] = 100 * ((df[col] / df.groupby("country")[col].shift(4)) - 1)
 for col in cols_rate:
     df[col] = df[col] - df.groupby("country")[col].shift(4)
+# Generate polynomials
+cols_poly = []
+for col in ["urate_gap"]:
+    df[col + "_sq"] = df[col] ** 2
+    df[col + "_cube"] = df[col] ** 3
+    cols_poly += [col + "_sq", col + "_cube"]
+# Generate interacted variables
+df["urate_int_urate_gap"] = df["urate"] * df["urate_gap"]
+df["urate_int_urate_gap_sq"] = df["urate"] * df["urate_gap_sq"]
+df["urate_gap_int_urate_gap_sq"] = df["urate_gap"] * df["urate_gap_sq"]
+df["urate_int_urate_gap_int_urate_gap_sq"] = (
+    df["urate"] * df["urate_gap"] * df["urate_gap_sq"]
+)
+df["urate_int_urate_gap_usa"] = df["urate_usa"] * df["urate_gap_usa"]
 # Generate lags
 for lag in range(1, 4 + 1):
-    for col in cols_pretransformed + cols_levels + cols_rate:
+    for col in cols_pretransformed + cols_levels + cols_rate + cols_poly:
         df[col + "_lag" + str(lag)] = df.groupby("country")[col].shift(lag)
 # Trim dates
 df["quarter"] = pd.to_datetime(df["quarter"]).dt.to_period("q")
@@ -123,13 +135,13 @@ list_file_names = []
 # %%
 # POLS
 # Without REER
-eqn = "corecpi ~ 1 + urate_gap + expcpi + corecpi_lag1"
+eqn = "corecpi ~ 1 + urate * urate_gap * urate_gap_sq + urate_usa * urate_gap_usa + expcpi + corecpi_lag1"
 mod_pols, res_pols, params_table_pols, joint_teststats_pols, reg_det_pols = reg_ols(
     df=df, eqn=eqn
 )
-file_name = path_output + "phillipscurve_ugap_params_pols"
+file_name = path_output + "phillipscurve_urate_ugap_nonlinear_exusa_reducedsample_params_pols"
 list_file_names += [file_name]
-chart_title = "Pooled OLS: Without REER"
+chart_title = "Pooled OLS: Without REER \n(Controlling for US U-Rate; Excluding MYS, IND, BRA)"
 fig = heatmap(
     input=params_table_pols,
     mask=False,
@@ -147,7 +159,7 @@ fig = heatmap(
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 # With REER
-eqn = "corecpi ~ 1 + urate_gap + expcpi + corecpi_lag1 + reer"
+eqn = "corecpi ~ 1 + urate * urate_gap * urate_gap_sq + urate_usa * urate_gap_usa + expcpi + corecpi_lag1 + reer"
 (
     mod_pols_reer,
     res_pols_reer,
@@ -155,9 +167,9 @@ eqn = "corecpi ~ 1 + urate_gap + expcpi + corecpi_lag1 + reer"
     joint_teststats_pols_reer,
     reg_det_pols_reer,
 ) = reg_ols(df=df, eqn=eqn)
-file_name = path_output + "phillipscurve_ugap_params_pols_reer"
+file_name = path_output + "phillipscurve_urate_ugap_nonlinear_exusa_reducedsample_params_pols_reer"
 list_file_names += [file_name]
-chart_title = "Pooled OLS: With REER"
+chart_title = "Pooled OLS: With REER \n(Controlling for US U-Rate; Excluding MYS, IND, BRA)"
 fig = heatmap(
     input=params_table_pols_reer,
     mask=False,
@@ -181,7 +193,16 @@ mod_fe, res_fe, params_table_fe, joint_teststats_fe, reg_det_fe = fe_reg(
     df=df,
     y_col="corecpi",
     x_cols=[
+        "urate",
         "urate_gap",
+        "urate_gap_sq",
+        "urate_int_urate_gap",
+        "urate_int_urate_gap_sq",
+        "urate_gap_int_urate_gap_sq",
+        "urate_int_urate_gap_int_urate_gap_sq",
+        "urate_usa",
+        "ugap_usa",
+        "urate_int_urate_gap_usa",
         "expcpi",
         "corecpi_lag1",
     ],
@@ -191,9 +212,9 @@ mod_fe, res_fe, params_table_fe, joint_teststats_fe, reg_det_fe = fe_reg(
     time_effects=False,
     cov_choice="robust",
 )
-file_name = path_output + "phillipscurve_ugap_params_fe"
+file_name = path_output + "phillipscurve_urate_ugap_nonlinear_exusa_reducedsample_params_fe"
 list_file_names += [file_name]
-chart_title = "FE: Without REER"
+chart_title = "FE: Without REER \n(Controlling for US U-Rate; Excluding MYS, IND, BRA)"
 fig = heatmap(
     input=params_table_fe,
     mask=False,
@@ -210,7 +231,7 @@ fig = heatmap(
     annot_fontsize=heatmaps_annot_fontsize,
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
-# With REER
+# With REER (benchmark model)
 (
     mod_fe_reer,
     res_fe_reer,
@@ -221,7 +242,16 @@ fig = heatmap(
     df=df,
     y_col="corecpi",
     x_cols=[
+        "urate",
         "urate_gap",
+        "urate_gap_sq",
+        "urate_int_urate_gap",
+        "urate_int_urate_gap_sq",
+        "urate_gap_int_urate_gap_sq",
+        "urate_int_urate_gap_int_urate_gap_sq",
+        "urate_usa",
+        "ugap_usa",
+        "urate_int_urate_gap_usa",
         "expcpi",
         "corecpi_lag1",
         "reer",
@@ -232,9 +262,9 @@ fig = heatmap(
     time_effects=False,
     cov_choice="robust",
 )
-file_name = path_output + "phillipscurve_ugap_params_fe_reer"
+file_name = path_output + "phillipscurve_urate_ugap_nonlinear_exusa_reducedsample_params_fe_reer"
 list_file_names += [file_name]
-chart_title = "FE: With REER"
+chart_title = "FE: With REER \n(Controlling for US U-Rate; Excluding MYS, IND, BRA)"
 fig = heatmap(
     input=params_table_fe_reer,
     mask=False,
@@ -251,209 +281,38 @@ fig = heatmap(
     annot_fontsize=heatmaps_annot_fontsize,
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
+params_table_fe_reer.to_parquet(file_name + ".parquet")
 
 # %%
-# GMM-IV
-# "n L1.n w k  | gmm(n, 2:4) pred(w k) | onestep nolevel timedumm"
-# Without REER
-mod_gmmiv, res_gmmiv, params_table_gmmiv = gmmiv_reg(
-    df=df,
-    eqn="corecpi urate_gap expcpi L1.corecpi | "
-    + "endo(corecpi) pred(urate_gap expcpi) | " 
-    + "hqic collapse",
-    i_col="country",
-    t_col="time",
+# Compile all log likelihoods
+df_loglik = pd.DataFrame(
+    {
+        "Model": [
+            "POLS: Without REER",
+            "POLS: With REER",
+            "FE: Without REER",
+            "FE: With REER",
+        ],
+        "Log-Likelihood": [
+            res_pols.llf,
+            res_pols_reer.llf,
+            res_fe.loglik,
+            res_fe_reer.loglik,
+        ],
+    }
 )
-file_name = path_output + "phillipscurve_ugap_params_gmmiv"
+df_loglik = pd.DataFrame(df_loglik.set_index("Model"))
+file_name = path_output + "phillipscurve_urate_ugap_nonlinear_exusa_reducedsample_loglik"
 list_file_names += [file_name]
-chart_title = "GMM-IV: Without REER"
+chart_title = "Log-Likelihood of Estimated Models"
 fig = heatmap(
-    input=params_table_gmmiv,
+    input=df_loglik,
     mask=False,
     colourmap="vlag",
     outputfile=file_name + ".png",
     title=chart_title,
-    lb=params_table_gmmiv.min().min(),
-    ub=params_table_gmmiv.max().max(),
-    format=".4f",
-    show_annot=True,
-    y_fontsize=heatmaps_y_fontsize,
-    x_fontsize=heatmaps_x_fontsize,
-    title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize,
-)
-# telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
-# With REER
-mod_gmmiv_reer, res_gmmiv_reer, params_table_gmmiv_reer = gmmiv_reg(
-    df=df,
-    eqn="corecpi urate_gap expcpi reer L1.corecpi | "
-    + "endo(corecpi) pred(urate_gap expcpi reer) | " 
-    + "hqic collapse",
-    i_col="country",
-    t_col="time",
-)
-file_name = path_output + "phillipscurve_ugap_params_gmmiv_reer"
-list_file_names += [file_name]
-chart_title = "GMM-IV: With REER"
-fig = heatmap(
-    input=params_table_gmmiv_reer,
-    mask=False,
-    colourmap="vlag",
-    outputfile=file_name + ".png",
-    title=chart_title,
-    lb=params_table_gmmiv_reer.min().min(),
-    ub=params_table_gmmiv_reer.max().max(),
-    format=".4f",
-    show_annot=True,
-    y_fontsize=heatmaps_y_fontsize,
-    x_fontsize=heatmaps_x_fontsize,
-    title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize,
-)
-# telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
-
-# %%
-# TWFE
-# Without REER
-mod_twfe, res_twfe, params_table_twfe, joint_teststats_twfe, reg_det_twfe = fe_reg(
-    df=df,
-    y_col="corecpi",
-    x_cols=[
-        "urate_gap",
-        "expcpi",
-        "corecpi_lag1",
-    ],
-    i_col="country",
-    t_col="time",
-    fixed_effects=True,
-    time_effects=True,
-    cov_choice="robust",
-)
-file_name = path_output + "phillipscurve_ugap_params_twfe"
-list_file_names += [file_name]
-chart_title = "TWFE: Without REER"
-fig = heatmap(
-    input=params_table_twfe,
-    mask=False,
-    colourmap="vlag",
-    outputfile=file_name + ".png",
-    title=chart_title,
-    lb=params_table_twfe.min().min(),
-    ub=params_table_twfe.max().max(),
-    format=".4f",
-    show_annot=True,
-    y_fontsize=heatmaps_y_fontsize,
-    x_fontsize=heatmaps_x_fontsize,
-    title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize,
-)
-# telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
-# With REER
-(
-    mod_twfe_reer,
-    res_twfe_reer,
-    params_table_twfe_reer,
-    joint_teststats_twfe_reer,
-    reg_det_twfe_reer,
-) = fe_reg(
-    df=df,
-    y_col="corecpi",
-    x_cols=[
-        "urate_gap",
-        "expcpi",
-        "corecpi_lag1",
-        "reer",
-    ],
-    i_col="country",
-    t_col="time",
-    fixed_effects=True,
-    time_effects=True,
-    cov_choice="robust",
-)
-file_name = path_output + "phillipscurve_ugap_params_twfe_reer"
-list_file_names += [file_name]
-chart_title = "TWFE: With REER"
-fig = heatmap(
-    input=params_table_twfe_reer,
-    mask=False,
-    colourmap="vlag",
-    outputfile=file_name + ".png",
-    title=chart_title,
-    lb=params_table_twfe_reer.min().min(),
-    ub=params_table_twfe_reer.max().max(),
-    format=".4f",
-    show_annot=True,
-    y_fontsize=heatmaps_y_fontsize,
-    x_fontsize=heatmaps_x_fontsize,
-    title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize,
-)
-# telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
-# %%
-# RE
-# Without REER
-mod_re, res_re, params_table_re, joint_teststats_re, reg_det_re = re_reg(
-    df=df,
-    y_col="corecpi",
-    x_cols=[
-        "urate_gap",
-        "expcpi",
-        "corecpi_lag1",
-    ],
-    i_col="country",
-    t_col="time",
-    cov_choice="robust",
-)
-file_name = path_output + "phillipscurve_ugap_params_re"
-list_file_names += [file_name]
-chart_title = "RE: Without REER"
-fig = heatmap(
-    input=params_table_re,
-    mask=False,
-    colourmap="vlag",
-    outputfile=file_name + ".png",
-    title=chart_title,
-    lb=params_table_re.min().min(),
-    ub=params_table_re.max().max(),
-    format=".4f",
-    show_annot=True,
-    y_fontsize=heatmaps_y_fontsize,
-    x_fontsize=heatmaps_x_fontsize,
-    title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize,
-)
-# telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
-# With REER
-(
-    mod_re_reer,
-    res_re_reer,
-    params_table_re_reer,
-    joint_teststats_re_reer,
-    reg_det_re_reer,
-) = re_reg(
-    df=df,
-    y_col="corecpi",
-    x_cols=[
-        "urate_gap",
-        "expcpi",
-        "corecpi_lag1",
-        "reer",
-    ],
-    i_col="country",
-    t_col="time",
-    cov_choice="robust",
-)
-file_name = path_output + "phillipscurve_ugap_params_re_reer"
-list_file_names += [file_name]
-chart_title = "RE: With REER"
-fig = heatmap(
-    input=params_table_re_reer,
-    mask=False,
-    colourmap="vlag",
-    outputfile=file_name + ".png",
-    title=chart_title,
-    lb=params_table_re_reer.min().min(),
-    ub=params_table_re_reer.max().max(),
+    lb=df_loglik.min().min(),
+    ub=df_loglik.max().max(),
     format=".4f",
     show_annot=True,
     y_fontsize=heatmaps_y_fontsize,
@@ -465,14 +324,15 @@ fig = heatmap(
 
 # %%
 # Compile all heat maps
-file_name_pdf = path_output + "phillipscurve_ugap_params"
+file_name_pdf = path_output + "phillipscurve_urate_ugap_nonlinear_exusa_reducedsample_params"
 pil_img2pdf(list_images=list_file_names, extension="png", pdf_name=file_name_pdf)
 telsendfiles(conf=tel_config, path=file_name_pdf + ".pdf", cap=file_name_pdf)
 
 # %%
 # X --- Notify
 telsendmsg(
-    conf=tel_config, msg="global-plucking --- analysis_phillipscurve_ugap: COMPLETED"
+    conf=tel_config,
+    msg="global-plucking --- analysis_phillipscurve_urate_ugap_nonlinear_exusa_reducedsample: COMPLETED",
 )
 
 # End
