@@ -279,18 +279,46 @@ df_loglik = pd.DataFrame(
             "FE: Without REER",
             "FE: With REER",
         ],
+        "AICc": [
+            (-2 * res_pols.llf + 2 * res_pols.df_model)
+            + (
+                (2 * res_pols.df_model * (res_pols.df_model + 1))
+                / (res_pols.nobs - res_pols.df_model - 1)
+            ),
+            (-2 * res_pols_reer.llf + 2 * res_pols_reer.df_model)
+            + (
+                (2 * res_pols_reer.df_model * (res_pols_reer.df_model + 1))
+                / (res_pols_reer.nobs - res_pols_reer.df_model - 1)
+            ),
+            (-2 * res_fe.loglik + 2 * res_fe.df_model)
+            + (
+                (2 * res_fe.df_model * (res_fe.df_model + 1))
+                / (res_fe.entity_info.total - res_fe.df_model - 1)
+            ),
+            (-2 * res_fe_reer.loglik + 2 * res_fe_reer.df_model)
+            + (
+                (2 * res_fe_reer.df_model * (res_fe_reer.df_model + 1))
+                / (res_fe_reer.entity_info.total - res_fe_reer.df_model - 1)
+            ),
+        ],
+        "AIC": [
+            (-2 * res_pols.llf + 2 * res_pols.df_model),
+            (-2 * res_pols_reer.llf + 2 * res_pols_reer.df_model),
+            (-2 * res_fe.loglik + 2 * res_fe.df_model),
+            (-2 * res_fe_reer.loglik + 2 * res_fe_reer.df_model),
+        ],
         "Log-Likelihood": [
             res_pols.llf,
             res_pols_reer.llf,
             res_fe.loglik,
             res_fe_reer.loglik,
-        ],
+        ]
     }
 )
 df_loglik = pd.DataFrame(df_loglik.set_index("Model"))
 file_name = path_output + "phillipscurve_urate_ugap_nonlinear_reducedsample_loglik"
 list_file_names += [file_name]
-chart_title = "Log-Likelihood of Estimated Models"
+chart_title = "AICs and Log-Likelihood of Estimated Models \n(Excluding MYS, IND, BRA)"
 fig = heatmap(
     input=df_loglik,
     mask=False,

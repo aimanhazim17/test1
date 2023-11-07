@@ -111,7 +111,7 @@ del df["quarter"]
 heatmaps_y_fontsize = 12
 heatmaps_x_fontsize = 12
 heatmaps_title_fontsize = 12
-heatmaps_annot_fontsize=12
+heatmaps_annot_fontsize = 12
 list_file_names = []
 # %%
 # POLS
@@ -136,7 +136,7 @@ fig = heatmap(
     y_fontsize=heatmaps_y_fontsize,
     x_fontsize=heatmaps_x_fontsize,
     title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize
+    annot_fontsize=heatmaps_annot_fontsize,
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 # With REER
@@ -164,7 +164,7 @@ fig = heatmap(
     y_fontsize=heatmaps_y_fontsize,
     x_fontsize=heatmaps_x_fontsize,
     title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize
+    annot_fontsize=heatmaps_annot_fontsize,
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 
@@ -201,7 +201,7 @@ fig = heatmap(
     y_fontsize=heatmaps_y_fontsize,
     x_fontsize=heatmaps_x_fontsize,
     title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize
+    annot_fontsize=heatmaps_annot_fontsize,
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 # With REER (benchmark model)
@@ -242,7 +242,7 @@ fig = heatmap(
     y_fontsize=heatmaps_y_fontsize,
     x_fontsize=heatmaps_x_fontsize,
     title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize
+    annot_fontsize=heatmaps_annot_fontsize,
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 params_table_fe_reer.to_parquet(file_name + ".parquet")
@@ -254,7 +254,7 @@ params_table_fe_reer.to_parquet(file_name + ".parquet")
 mod_gmmiv, res_gmmiv, params_table_gmmiv = gmmiv_reg(
     df=df,
     eqn="corecpi urate urate_gap expcpi L1.corecpi | "
-    + "endo(corecpi) pred(urate expcpi) | " 
+    + "endo(corecpi) pred(urate expcpi) | "
     + "hqic collapse",
     i_col="country",
     t_col="time",
@@ -282,7 +282,7 @@ fig = heatmap(
 mod_gmmiv_reer, res_gmmiv_reer, params_table_gmmiv_reer = gmmiv_reg(
     df=df,
     eqn="corecpi urate expcpi reer L1.corecpi | "
-    + "endo(corecpi) pred(urate expcpi reer) | " 
+    + "endo(corecpi) pred(urate expcpi reer) | "
     + "hqic collapse",
     i_col="country",
     t_col="time",
@@ -340,7 +340,7 @@ fig = heatmap(
     y_fontsize=heatmaps_y_fontsize,
     x_fontsize=heatmaps_x_fontsize,
     title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize
+    annot_fontsize=heatmaps_annot_fontsize,
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 # With REER
@@ -381,7 +381,7 @@ fig = heatmap(
     y_fontsize=heatmaps_y_fontsize,
     x_fontsize=heatmaps_x_fontsize,
     title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize
+    annot_fontsize=heatmaps_annot_fontsize,
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 # %%
@@ -415,7 +415,7 @@ fig = heatmap(
     y_fontsize=heatmaps_y_fontsize,
     x_fontsize=heatmaps_x_fontsize,
     title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize
+    annot_fontsize=heatmaps_annot_fontsize,
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 # With REER
@@ -446,7 +446,7 @@ fig = heatmap(
     mask=False,
     colourmap="vlag",
     outputfile=file_name + ".png",
-    title=chart_title, 
+    title=chart_title,
     lb=params_table_re_reer.min().min(),
     ub=params_table_re_reer.max().max(),
     format=".4f",
@@ -454,9 +454,10 @@ fig = heatmap(
     y_fontsize=heatmaps_y_fontsize,
     x_fontsize=heatmaps_x_fontsize,
     title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize
+    annot_fontsize=heatmaps_annot_fontsize,
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
+
 
 # %%
 # Compile all log likelihoods
@@ -466,26 +467,54 @@ df_loglik = pd.DataFrame(
             "POLS: Without REER",
             "POLS: With REER",
             "FE: Without REER",
-            "FE: With REER"
+            "FE: With REER",
+        ],
+        "AICc": [
+            (-2 * res_pols.llf + 2 * res_pols.df_model)
+            + (
+                (2 * res_pols.df_model * (res_pols.df_model + 1))
+                / (res_pols.nobs - res_pols.df_model - 1)
+            ),
+            (-2 * res_pols_reer.llf + 2 * res_pols_reer.df_model)
+            + (
+                (2 * res_pols_reer.df_model * (res_pols_reer.df_model + 1))
+                / (res_pols_reer.nobs - res_pols_reer.df_model - 1)
+            ),
+            (-2 * res_fe.loglik + 2 * res_fe.df_model)
+            + (
+                (2 * res_fe.df_model * (res_fe.df_model + 1))
+                / (res_fe.entity_info.total - res_fe.df_model - 1)
+            ),
+            (-2 * res_fe_reer.loglik + 2 * res_fe_reer.df_model)
+            + (
+                (2 * res_fe_reer.df_model * (res_fe_reer.df_model + 1))
+                / (res_fe_reer.entity_info.total - res_fe_reer.df_model - 1)
+            ),
+        ],
+        "AIC": [
+            (-2 * res_pols.llf + 2 * res_pols.df_model),
+            (-2 * res_pols_reer.llf + 2 * res_pols_reer.df_model),
+            (-2 * res_fe.loglik + 2 * res_fe.df_model),
+            (-2 * res_fe_reer.loglik + 2 * res_fe_reer.df_model),
         ],
         "Log-Likelihood": [
             res_pols.llf,
             res_pols_reer.llf,
             res_fe.loglik,
-            res_fe_reer.loglik
+            res_fe_reer.loglik,
         ]
     }
-    )
+)
 df_loglik = pd.DataFrame(df_loglik.set_index("Model"))
 file_name = path_output + "phillipscurve_urate_base_loglik"
 list_file_names += [file_name]
-chart_title = "Log-Likelihood of Estimated Models (Without U-Rate Gap)"
+chart_title = "AICs and Log-Likelihood of Estimated Models (Without U-Rate Gap)"
 fig = heatmap(
     input=df_loglik,
     mask=False,
     colourmap="vlag",
     outputfile=file_name + ".png",
-    title=chart_title, 
+    title=chart_title,
     lb=df_loglik.min().min(),
     ub=df_loglik.max().max(),
     format=".4f",
@@ -493,7 +522,7 @@ fig = heatmap(
     y_fontsize=heatmaps_y_fontsize,
     x_fontsize=heatmaps_x_fontsize,
     title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize
+    annot_fontsize=heatmaps_annot_fontsize,
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 
@@ -506,7 +535,8 @@ telsendfiles(conf=tel_config, path=file_name_pdf + ".pdf", cap=file_name_pdf)
 # %%
 # X --- Notify
 telsendmsg(
-    conf=tel_config, msg="global-plucking --- analysis_phillipscurve_urate_base: COMPLETED"
+    conf=tel_config,
+    msg="global-plucking --- analysis_phillipscurve_urate_base: COMPLETED",
 )
 
 # End
