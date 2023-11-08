@@ -17,6 +17,7 @@ from helper import (
 import statsmodels.tsa.api as smt
 from statsmodels.tsa.ar_model import ar_select_order
 import localprojections as lp
+from tabulate import tabulate
 from tqdm import tqdm
 import time
 import os
@@ -117,7 +118,6 @@ def meowmeowcapybara_pols(
     other_x_cols: list[str],
     threshold_range: list[float],
     threshold_range_skip: float,
-    
 ):
     # deep copy
     df = data.copy()
@@ -263,13 +263,13 @@ params_table_pols, threshold_optimal_pols, df_loglik_pols = meowmeowcapybara_pol
     x_interactedwith_threshold_col="urate",
     other_x_cols=["expcpi", "corecpi_lag1"],
     threshold_range=[0, df.groupby("country")["urate_gap"].max().min()],
-    threshold_range_skip=0.05,
+    threshold_range_skip=0.01,
 )
 file_name = path_output + "phillipscurve_urate_ugap_threshold_params_pols"
 list_file_names += [file_name]
 chart_title = (
     "Pooled OLS: Without REER"
-    + " (Optimal Threshold: U-Rate Gap >= "
+    + " (Optimal Threshold: U-Rate Gap <= "
     + str(threshold_optimal_pols)
     + ")"
 )
@@ -291,7 +291,11 @@ fig = heatmap(
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 df_loglik_pols.to_parquet(file_name + "_logliksearch" + ".parquet")
 # With REER
-params_table_pols_reer, threshold_optimal_pols_reer, df_loglik_pols_reer = meowmeowcapybara_pols(
+(
+    params_table_pols_reer,
+    threshold_optimal_pols_reer,
+    df_loglik_pols_reer,
+) = meowmeowcapybara_pols(
     data=df,
     y_col="corecpi",
     threshold_input_col="urate_gap",
@@ -299,13 +303,13 @@ params_table_pols_reer, threshold_optimal_pols_reer, df_loglik_pols_reer = meowm
     x_interactedwith_threshold_col="urate",
     other_x_cols=["expcpi", "corecpi_lag1", "reer"],
     threshold_range=[0, df.groupby("country")["urate_gap"].max().min()],
-    threshold_range_skip=0.05,
+    threshold_range_skip=0.01,
 )
 file_name = path_output + "phillipscurve_urate_ugap_threshold_params_pols_reer"
 list_file_names += [file_name]
 chart_title = (
     "Pooled OLS: With REER"
-    + " (Optimal Threshold: U-Rate Gap >= "
+    + " (Optimal Threshold: U-Rate Gap <= "
     + str(threshold_optimal_pols)
     + ")"
 )
@@ -337,15 +341,15 @@ params_table_fe, threshold_optimal_fe, df_loglik_fe = meowmeowcapybara_fe(
     x_interactedwith_threshold_col="urate",
     other_x_cols=["expcpi", "corecpi_lag1"],
     threshold_range=[0, df.groupby("country")["urate_gap"].max().min()],
-    threshold_range_skip=0.05,
+    threshold_range_skip=0.01,
     entity_col="country",
-    time_col="time"
+    time_col="time",
 )
 file_name = path_output + "phillipscurve_urate_ugap_threshold_params_fe"
 list_file_names += [file_name]
 chart_title = (
     "FE: Without REER"
-    + " (Optimal Threshold: U-Rate Gap >= "
+    + " (Optimal Threshold: U-Rate Gap <= "
     + str(threshold_optimal_pols)
     + ")"
 )
@@ -367,7 +371,11 @@ fig = heatmap(
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 df_loglik_fe.to_parquet(file_name + "_logliksearch" + ".parquet")
 # With REER
-params_table_fe_reer, threshold_optimal_fe_reer, df_loglik_fe_reer = meowmeowcapybara_fe(
+(
+    params_table_fe_reer,
+    threshold_optimal_fe_reer,
+    df_loglik_fe_reer,
+) = meowmeowcapybara_fe(
     data=df,
     y_col="corecpi",
     threshold_input_col="urate_gap",
@@ -375,15 +383,15 @@ params_table_fe_reer, threshold_optimal_fe_reer, df_loglik_fe_reer = meowmeowcap
     x_interactedwith_threshold_col="urate",
     other_x_cols=["expcpi", "corecpi_lag1", "reer"],
     threshold_range=[0, df.groupby("country")["urate_gap"].max().min()],
-    threshold_range_skip=0.05,
+    threshold_range_skip=0.01,
     entity_col="country",
-    time_col="time"
+    time_col="time",
 )
 file_name = path_output + "phillipscurve_urate_ugap_threshold_params_fe_reer"
 list_file_names += [file_name]
 chart_title = (
     "FE: With REER"
-    + " (Optimal Threshold: U-Rate Gap >= "
+    + " (Optimal Threshold: U-Rate Gap <= "
     + str(threshold_optimal_pols)
     + ")"
 )
@@ -404,6 +412,21 @@ fig = heatmap(
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 df_loglik_fe_reer.to_parquet(file_name + "_logliksearch" + ".parquet")
+
+# %%
+# Compute average u-rate gaps
+tab_ugap_avg = pd.DataFrame(df.groupby("country")["urate_gap"].mean())
+print(tabulate(tab_ugap_avg, headers="keys", tablefmt="pretty"))
+
+tab_ugap_keystats = pd.DataFrame(df["urate_gap"].describe())
+print(tabulate(tab_ugap_keystats, headers="keys", tablefmt="pretty"))
+
+df_sub = df[df["urate_gap"] > 0].copy()
+tab_ugap_keystats_abovezero = pd.DataFrame(df_sub["urate_gap"].describe())
+print(tabulate(tab_ugap_keystats_abovezero, headers="keys", tablefmt="pretty"))
+
+tab_ugap_keystats_panel = pd.DataFrame(df.groupby("country")["urate_gap"].describe())
+print(tabulate(tab_ugap_keystats_panel, headers="keys", tablefmt="pretty"))
 
 # %%
 # Compile all heat maps

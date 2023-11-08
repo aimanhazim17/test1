@@ -12,6 +12,7 @@ from helper import (
     gmmiv_reg,
     heatmap,
     pil_img2pdf,
+    subplots_linecharts,
 )
 import statsmodels.tsa.api as smt
 from statsmodels.tsa.ar_model import ar_select_order
@@ -84,7 +85,7 @@ df = df[df["country"].isin(list_countries_keep)]
 # Transform
 cols_pretransformed = ["rgdp", "m2", "cpi", "corecpi", "maxgepu", "expcpi"]
 cols_levels = ["reer", "ber", "brent", "gepu"]
-cols_rate = ["stir", "ltir", "urate_ceiling", "urate", "privdebt", "privdebt_bank"]
+cols_rate = ["stir", "ltir", "urate", "privdebt", "privdebt_bank"]
 for col in cols_levels:
     df[col] = 100 * ((df[col] / df.groupby("country")[col].shift(4)) - 1)
 for col in cols_rate:
@@ -102,6 +103,7 @@ df = df[(df["quarter"] >= t_start_q) & (df["quarter"] <= t_end_q)]
 df = df.reset_index(drop=True)
 # Set numeric time index
 df["time"] = df.groupby("country").cumcount()
+dict_numerictime_quarter = dict(zip(df["time"], df["quarter"]))
 del df["quarter"]
 
 # %%
@@ -111,7 +113,7 @@ del df["quarter"]
 heatmaps_y_fontsize = 12
 heatmaps_x_fontsize = 12
 heatmaps_title_fontsize = 12
-heatmaps_annot_fontsize=12
+heatmaps_annot_fontsize = 12
 list_file_names = []
 # %%
 # POLS
@@ -136,7 +138,7 @@ fig = heatmap(
     y_fontsize=heatmaps_y_fontsize,
     x_fontsize=heatmaps_x_fontsize,
     title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize
+    annot_fontsize=heatmaps_annot_fontsize,
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 # With REER
@@ -164,7 +166,7 @@ fig = heatmap(
     y_fontsize=heatmaps_y_fontsize,
     x_fontsize=heatmaps_x_fontsize,
     title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize
+    annot_fontsize=heatmaps_annot_fontsize,
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 # %%
@@ -202,7 +204,7 @@ fig = heatmap(
     y_fontsize=heatmaps_y_fontsize,
     x_fontsize=heatmaps_x_fontsize,
     title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize
+    annot_fontsize=heatmaps_annot_fontsize,
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 # With REER (benchmark model)
@@ -245,7 +247,7 @@ fig = heatmap(
     y_fontsize=heatmaps_y_fontsize,
     x_fontsize=heatmaps_x_fontsize,
     title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize
+    annot_fontsize=heatmaps_annot_fontsize,
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 params_table_fe_reer.to_parquet(file_name + ".parquet")
@@ -257,7 +259,7 @@ params_table_fe_reer.to_parquet(file_name + ".parquet")
 mod_gmmiv, res_gmmiv, params_table_gmmiv = gmmiv_reg(
     df=df,
     eqn="corecpi urate urate_gap urate_int_urate_gap expcpi L1.corecpi | "
-    + "endo(corecpi) pred(urate urate_gap urate_int_urate_gap expcpi) | " 
+    + "endo(corecpi) pred(urate urate_gap urate_int_urate_gap expcpi) | "
     + "hqic collapse",
     i_col="country",
     t_col="time",
@@ -285,7 +287,7 @@ fig = heatmap(
 mod_gmmiv_reer, res_gmmiv_reer, params_table_gmmiv_reer = gmmiv_reg(
     df=df,
     eqn="corecpi urate urate_gap urate_int_urate_gap expcpi reer L1.corecpi | "
-    + "endo(corecpi) pred(urate urate_gap urate_int_urate_gap expcpi reer) | " 
+    + "endo(corecpi) pred(urate urate_gap urate_int_urate_gap expcpi reer) | "
     + "hqic collapse",
     i_col="country",
     t_col="time",
@@ -345,7 +347,7 @@ fig = heatmap(
     y_fontsize=heatmaps_y_fontsize,
     x_fontsize=heatmaps_x_fontsize,
     title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize
+    annot_fontsize=heatmaps_annot_fontsize,
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 # With REER
@@ -388,7 +390,7 @@ fig = heatmap(
     y_fontsize=heatmaps_y_fontsize,
     x_fontsize=heatmaps_x_fontsize,
     title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize
+    annot_fontsize=heatmaps_annot_fontsize,
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 # %%
@@ -424,7 +426,7 @@ fig = heatmap(
     y_fontsize=heatmaps_y_fontsize,
     x_fontsize=heatmaps_x_fontsize,
     title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize
+    annot_fontsize=heatmaps_annot_fontsize,
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 # With REER
@@ -465,7 +467,7 @@ fig = heatmap(
     y_fontsize=heatmaps_y_fontsize,
     x_fontsize=heatmaps_x_fontsize,
     title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize
+    annot_fontsize=heatmaps_annot_fontsize,
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 
@@ -513,7 +515,7 @@ df_loglik = pd.DataFrame(
             res_pols_reer.llf,
             res_fe.loglik,
             res_fe_reer.loglik,
-        ]
+        ],
     }
 )
 df_loglik = pd.DataFrame(df_loglik.set_index("Model"))
@@ -525,7 +527,7 @@ fig = heatmap(
     mask=False,
     colourmap="vlag",
     outputfile=file_name + ".png",
-    title=chart_title, 
+    title=chart_title,
     lb=df_loglik.min().min(),
     ub=df_loglik.max().max(),
     format=".4f",
@@ -533,9 +535,147 @@ fig = heatmap(
     y_fontsize=heatmaps_y_fontsize,
     x_fontsize=heatmaps_x_fontsize,
     title_fontsize=heatmaps_title_fontsize,
-    annot_fontsize=heatmaps_annot_fontsize
+    annot_fontsize=heatmaps_annot_fontsize,
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
+
+# %%
+# Actual versus fitted (only benchmark model)
+df_yfit = (
+    pd.concat(
+        [
+            df[["country", "time", "corecpi"]].set_index(["country", "time"]),
+            res_fe_reer.fitted_values,
+        ],
+        axis=1,
+    )
+    .rename(columns={"fitted_values": "corecpi_fit"})
+    .dropna(axis=0)
+).reset_index()
+df_yfit["time"] = df_yfit["time"].replace(dict_numerictime_quarter)
+df_yfit = df_yfit.rename(columns={"time": "quarter"})
+countries_asean4 = ["malaysia", "thailand", "philippines"]
+countries_asianie = [
+    "singapore",
+    "south_korea",
+]
+countries_bigemerging = ["india", "mexico", "brazil", "chile"]
+countries_adv = [
+    "united_states",
+    "japan",
+    "australia",
+    "united_kingdom",
+    "germany",
+    "france",
+    "italy",
+]
+nested_list_country_groups = [
+    countries_asean4,
+    countries_asianie,
+    countries_bigemerging,
+    countries_adv,
+]
+nice_group_names_by_country_groups = ["ASEAN-4", "Asian NIEs", "Major EMs", "AEs"]
+snakecase_group_names_by_country_groups = ["asean4", "asianie", "bigemerging", "adv"]
+rows_by_country_groups = [2, 1, 2, 3]
+cols_by_country_groups = [2, 2, 2, 3]
+for country_groups, snakecase_group_name, nice_group_name, n_rows, n_cols in tqdm(
+    zip(
+        nested_list_country_groups,
+        snakecase_group_names_by_country_groups,
+        nice_group_names_by_country_groups,
+        rows_by_country_groups,
+        cols_by_country_groups,
+    )
+):
+    df_sub = df_yfit[df_yfit["country"].isin(country_groups)].copy()
+    df_sub["quarter"] = df_sub["quarter"].astype("str")
+    fig = subplots_linecharts(
+        data=df_sub,
+        col_group="country",
+        cols_values=["corecpi", "corecpi_fit"],
+        cols_values_nice=["Core CPI", "Fitted Core CPI"],
+        col_time="quarter",
+        annot_size=12,
+        font_size=12,
+        line_colours=["black", "crimson"],
+        line_dashes=["solid", "dot"],
+        main_title="Actual and Fitted Core CPI in " + nice_group_name,
+        maxrows=n_rows,
+        maxcols=n_cols,
+    )
+    file_name = (
+        path_output
+        + "phillipscurve_urate_ugap_fittedversusactual_"
+        + snakecase_group_name
+    )
+    fig.write_image(file_name + ".png")
+    # telsendimg(
+    #     conf=tel_config,
+    #     path=file_name + ".png",
+    #     cap=file_name
+    # )
+    list_file_names += [file_name]
+
+# %%
+# Regression-implied NAIRU
+df_nairu = df.merge(res_fe_reer.estimated_effects.reset_index(drop=False))
+df_nairu = df_nairu.merge(res_fe_reer.resids.reset_index(drop=False))
+df_nairu["time"] = df_nairu["time"].replace(dict_numerictime_quarter)
+df_nairu = df_nairu.rename(columns={"time": "quarter"})
+df_nairu["nairu"] = (
+    -1
+    * (
+        (df_nairu["estimated_effects"])
+        + (res_fe_reer.params.urate * df_nairu["urate"])
+        + (res_fe_reer.params.expcpi * df_nairu["expcpi"])
+        + (res_fe_reer.params.reer * df_nairu["reer"])
+        + (res_fe_reer.params.corecpi_lag1 * df_nairu["corecpi_lag1"])
+        + df_nairu["residual"]
+    )
+    / (
+        res_fe_reer.params.urate_gap
+        + (res_fe_reer.params.urate_int_urate_gap * df_nairu["urate"])
+    )
+)
+for country_groups, snakecase_group_name, nice_group_name, n_rows, n_cols in tqdm(
+    zip(
+        nested_list_country_groups,
+        snakecase_group_names_by_country_groups,
+        nice_group_names_by_country_groups,
+        rows_by_country_groups,
+        cols_by_country_groups,
+    )
+):
+    df_sub = df_nairu[df_nairu["country"].isin(country_groups)].copy()
+    df_sub["quarter"] = df_sub["quarter"].astype("str")
+    fig = subplots_linecharts(
+        data=df_sub,
+        col_group="country",
+        cols_values=["urate", "urate_ceiling", "nairu"],
+        cols_values_nice=["U-Rate", "U-Rate Floor", "Implied NAIRU"],
+        col_time="quarter",
+        annot_size=12,
+        font_size=12,
+        line_colours=["black", "crimson", "darkblue"],
+        line_dashes=["solid", "solid", "solid"],
+        main_title="U-Rate (Actual, Floor, NAIRU) in " + nice_group_name,
+        maxrows=n_rows,
+        maxcols=n_cols,
+    )
+    file_name = (
+        path_output
+        + "phillipscurve_urate_ugap_floorversusnairu_"
+        + snakecase_group_name
+    )
+    fig.write_image(file_name + ".png")
+    # telsendimg(
+    #     conf=tel_config,
+    #     path=file_name + ".png",
+    #     cap=file_name
+    # )
+    list_file_names += [file_name]
+
 
 # %%
 # Compile all heat maps
@@ -546,7 +686,8 @@ telsendfiles(conf=tel_config, path=file_name_pdf + ".pdf", cap=file_name_pdf)
 # %%
 # X --- Notify
 telsendmsg(
-    conf=tel_config, msg="global-plucking --- analysis_phillipscurve_urate_ugap: COMPLETED"
+    conf=tel_config,
+    msg="global-plucking --- analysis_phillipscurve_urate_ugap: COMPLETED",
 )
 
 # End
