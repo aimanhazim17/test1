@@ -782,9 +782,10 @@ def lineplot(
             go.Scatter(
                 x=df[x_col_nice].astype("str"),
                 y=df[y_col_nice],
+                name=y_col_nice,
                 mode="lines",
                 line=dict(color=line_colour, width=line_width, dash=line_dash),
-                showlegend=False,
+                # showlegend=False,
             )
         )
     # layouts

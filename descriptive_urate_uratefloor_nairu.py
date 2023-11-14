@@ -10,6 +10,7 @@ from helper import (
     subplots_linecharts,
     lineplot,
     pil_img2pdf,
+    heatmap
 )
 from helper_plucking import compute_urate_floor
 from datetime import date, timedelta
@@ -18,6 +19,7 @@ import statsmodels.tsa.api as sm
 import plotly.graph_objects as go
 import plotly.express as px
 from ceic_api_client.pyceic import Ceic
+from tabulate import tabulate
 from tqdm import tqdm
 import time
 from dotenv import load_dotenv
@@ -121,7 +123,7 @@ cols_by_country_groups = [2, 2, 3, 3]
 # %%
 # Plot US u-rate, u-rate floor, and nairu (CBO)
 df_sub = df[df["country"] == "united_states"].copy()
-df_sub = df_sub[["quarter", "urate", "urate_ceiling", "nairu"]]
+df_sub = df_sub[["quarter", "urate", "urate_ceiling", "nairu", "urate_gap"]]
 cols_urates = ["urate", "urate_ceiling", "nairu"]
 cols_urates_nice = ["U-Rate", "U-Rate Floor", "NAIRU"]
 cols_colours = ["black", "crimson", "darkblue"]
@@ -141,6 +143,39 @@ fig = lineplot(
     main_title=chart_title,
 )
 fig.write_image(file_name + ".png")
+telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
+# %%
+# Tabulate how many times the u-rate has crossed the NAIRU, or the u-rate floor
+df_sub.loc[df_sub["urate"] <= df_sub["nairu"], "urate_below_nairu"] = 1
+df_sub.loc[df_sub["urate"] > df_sub["nairu"], "urate_below_nairu"] = 0
+df_sub.loc[df_sub["urate_gap"] == 0, "urate_at_floor"] = 1
+df_sub.loc[df_sub["urate_gap"] > 0, "urate_at_floor"] = 0
+tab_urate_nairu_floor = pd.concat(
+    [
+        df_sub["urate_below_nairu"].value_counts(normalize=True),
+        df_sub["urate_at_floor"].value_counts(normalize=True),
+    ],
+    axis=1
+    )
+tab_urate_nairu_floor.columns = ["U-Rate at or Below NAIRU", "U-Rate at Floor"]
+tab_urate_nairu_floor = 100 * tab_urate_nairu_floor
+chart_title = "Percentage of Observations in the US \nWhere U-Rate is Relative to the NAIRU, \nand U-Rate Floor"
+file_name = path_output + "urate_uratefloor_nairu_tabperc_united_states"
+fig = heatmap(
+    input=tab_urate_nairu_floor,
+    mask=False,
+    colourmap="vlag",
+    outputfile=file_name + ".png",
+    title=chart_title,
+    lb=tab_urate_nairu_floor.min().min(),
+    ub=tab_urate_nairu_floor.max().max(),
+    format=".2f",
+    show_annot=True,
+    y_fontsize=14,
+    x_fontsize=14,
+    title_fontsize=14,
+    annot_fontsize=16,
+)
 telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 
 # %%
