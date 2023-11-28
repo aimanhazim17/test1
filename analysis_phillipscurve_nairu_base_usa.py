@@ -92,7 +92,7 @@ df = df[df["country"].isin(list_countries_keep)]
 # Compute NAIRU gap
 df["nairu_gap"] = df["urate"] - df["nairu"] 
 # Transform
-cols_pretransformed = ["rgdp", "m2", "cpi", "corecpi", "maxgepu", "expcpi"]
+cols_pretransformed = ["rgdp", "m2", "cpi", "corecpi", "maxgepu", "expcpi", "nairu_gap"]
 cols_levels = ["reer", "ber", "brent", "gepu"]
 cols_rate = ["stir", "ltir", "urate_ceiling", "urate", "nairu", "privdebt", "privdebt_bank"]
 for col in cols_levels:
@@ -161,6 +161,61 @@ eqn = "corecpi ~ 1 + nairu_gap + expcpi + corecpi_lag1 + reer"
 file_name = path_output + "phillipscurve_nairu_base_usa_params_pols_reer"
 list_file_names += [file_name]
 chart_title = "OLS: With REER (With NAIRU Gap; US-Only)"
+fig = heatmap(
+    input=params_table_pols_reer,
+    mask=False,
+    colourmap="vlag",
+    outputfile=file_name + ".png",
+    title=chart_title,
+    lb=params_table_pols_reer.min().min(),
+    ub=params_table_pols_reer.max().max(),
+    format=".4f",
+    show_annot=True,
+    y_fontsize=heatmaps_y_fontsize,
+    x_fontsize=heatmaps_x_fontsize,
+    title_fontsize=heatmaps_title_fontsize,
+    annot_fontsize=heatmaps_annot_fontsize,
+)
+# telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
+
+# %%
+# POLS (lagged nairu)
+# Without REER
+eqn = "corecpi ~ 1 + nairu_gap_lag1 + expcpi + corecpi_lag1"
+mod_pols, res_pols, params_table_pols, joint_teststats_pols, reg_det_pols = reg_ols(
+    df=df, eqn=eqn
+)
+file_name = path_output + "phillipscurve_nairu_base_lag1_usa_params_pols"
+list_file_names += [file_name]
+chart_title = "OLS: Without REER (With Lagged NAIRU Gap; US-Only)"
+fig = heatmap(
+    input=params_table_pols,
+    mask=False,
+    colourmap="vlag",
+    outputfile=file_name + ".png",
+    title=chart_title,
+    lb=params_table_pols.min().min(),
+    ub=params_table_pols.max().max(),
+    format=".4f",
+    show_annot=True,
+    y_fontsize=heatmaps_y_fontsize,
+    x_fontsize=heatmaps_x_fontsize,
+    title_fontsize=heatmaps_title_fontsize,
+    annot_fontsize=heatmaps_annot_fontsize,
+)
+# telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
+# With REER
+eqn = "corecpi ~ 1 + nairu_gap_lag1 + expcpi + corecpi_lag1 + reer"
+(
+    mod_pols_reer,
+    res_pols_reer,
+    params_table_pols_reer,
+    joint_teststats_pols_reer,
+    reg_det_pols_reer,
+) = reg_ols(df=df, eqn=eqn)
+file_name = path_output + "phillipscurve_nairu_base_lag1_usa_params_pols_reer"
+list_file_names += [file_name]
+chart_title = "OLS: With REER (With Lagged NAIRU Gap; US-Only)"
 fig = heatmap(
     input=params_table_pols_reer,
     mask=False,
