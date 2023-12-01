@@ -800,6 +800,56 @@ def lineplot(
     return fig
 
 
+def lineplot_dualaxes(
+    data: pd.DataFrame,
+    y_cols: list[str],
+    y_cols_nice: list[str],
+    x_col: str,
+    x_col_nice: str,
+    secondary_y_bools: list[bool],
+    primary_y_title: str,
+    secondary_y_title: str,
+    line_colours: list[str],
+    line_widths: list[int],
+    line_dashes: list[str],
+    main_title: str,
+):
+    # prelims
+    df = data.copy()
+    df = df.rename(columns={x_col: x_col_nice})
+    for y_col_nice, y_col in zip(y_cols_nice, y_cols):
+        df = df.rename(columns={y_col: y_col_nice})
+    # generate figure
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    # add lines
+    for secondary_y_bool, y_col_nice, line_colour, line_width, line_dash in zip(
+        secondary_y_bools, y_cols_nice, line_colours, line_widths, line_dashes
+    ):
+        fig.add_trace(
+            go.Scatter(
+                x=df[x_col_nice].astype("str"),
+                y=df[y_col_nice],
+                name=y_col_nice,
+                mode="lines",
+                line=dict(color=line_colour, width=line_width, dash=line_dash),
+                # showlegend=False,
+            ), 
+            secondary_y=secondary_y_bool
+        )
+    # layouts
+    fig.update_layout(
+        title=main_title,
+        plot_bgcolor="white",
+        font=dict(color="black", size=16),
+        height=768,
+        width=1366,
+    )
+    fig.update_yaxes(title_text=primary_y_title, secondary_y=False)
+    fig.update_yaxes(title_text=secondary_y_title, secondary_y=True)
+    # output
+    return fig
+
+
 def scatterplot(
     data: pd.DataFrame,
     y_col: str,
