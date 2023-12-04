@@ -92,7 +92,7 @@ df = df[df["country"].isin(list_countries_keep)]
 # Compute NAIRU gap
 df["nairu_gap"] = df["urate"] - df["nairu"] 
 # Transform
-cols_pretransformed = ["rgdp", "m2", "cpi", "corecpi", "maxgepu", "expcpi", "nairu_gap"]
+cols_pretransformed = ["rgdp", "m2", "cpi", "corecpi", "maxgepu", "expcpi", "nairu_gap", "urate_gap"]
 cols_levels = ["reer", "ber", "brent", "gepu"]
 cols_rate = ["stir", "ltir", "urate_ceiling", "urate", "nairu", "privdebt", "privdebt_bank"]
 for col in cols_levels:
@@ -124,15 +124,15 @@ heatmaps_title_fontsize = 12
 heatmaps_annot_fontsize = 12
 list_file_names = []
 # %%
-# POLS (NAIRU)
+# POLS (u-rate gap)
 # Without REER
-eqn = "corecpi ~ 1 + nairu_gap + expcpi + corecpi_lag1"
+eqn = "corecpi ~ 1 + urate_gap + expcpi + corecpi_lag1"
 mod_pols, res_pols, params_table_pols, joint_teststats_pols, reg_det_pols = reg_ols(
     df=df, eqn=eqn
 )
-file_name = path_output + "phillipscurve_nairu_base_usa_params_pols"
+file_name = path_output + "phillipscurve_ugap_base_usa_params_pols"
 list_file_names += [file_name]
-chart_title = "OLS: Without REER (With NAIRU Gap; US-Only)"
+chart_title = "OLS: Without REER (With Plucking U-Rate Gap; US-Only)"
 fig = heatmap(
     input=params_table_pols,
     mask=False,
@@ -150,7 +150,7 @@ fig = heatmap(
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 # With REER
-eqn = "corecpi ~ 1 + nairu_gap + expcpi + corecpi_lag1 + reer"
+eqn = "corecpi ~ 1 + urate_gap + expcpi + corecpi_lag1 + reer"
 (
     mod_pols_reer,
     res_pols_reer,
@@ -158,9 +158,9 @@ eqn = "corecpi ~ 1 + nairu_gap + expcpi + corecpi_lag1 + reer"
     joint_teststats_pols_reer,
     reg_det_pols_reer,
 ) = reg_ols(df=df, eqn=eqn)
-file_name = path_output + "phillipscurve_nairu_base_usa_params_pols_reer"
+file_name = path_output + "phillipscurve_ugap_base_usa_params_pols_reer"
 list_file_names += [file_name]
-chart_title = "OLS: With REER (With NAIRU Gap; US-Only)"
+chart_title = "OLS: With REER (With Plucking U-Rate Gap; US-Only)"
 fig = heatmap(
     input=params_table_pols_reer,
     mask=False,
@@ -179,13 +179,13 @@ fig = heatmap(
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 
 # %%
-# POLS (lagged nairu)
+# POLS (lagged u-rate gap)
 # Without REER
-eqn = "corecpi ~ 1 + nairu_gap_lag1 + expcpi + corecpi_lag1"
+eqn = "corecpi ~ 1 + urate_gap_lag1 + expcpi + corecpi_lag1"
 mod_pols_lag1, res_pols_lag1, params_table_pols_lag1, joint_teststats_pols_lag1, reg_det_pols_lag1 = reg_ols(
     df=df, eqn=eqn
 )
-file_name = path_output + "phillipscurve_nairu_base_lag1_usa_params_pols"
+file_name = path_output + "phillipscurve_ugap_base_lag1_usa_params_pols"
 list_file_names += [file_name]
 chart_title = "OLS: Without REER (With Lagged NAIRU Gap; US-Only)"
 fig = heatmap(
@@ -205,7 +205,7 @@ fig = heatmap(
 )
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 # With REER
-eqn = "corecpi ~ 1 + nairu_gap_lag1 + expcpi + corecpi_lag1 + reer"
+eqn = "corecpi ~ 1 + urate_gap_lag1 + expcpi + corecpi_lag1 + reer"
 (
     mod_pols_reer,
     res_pols_reer,
@@ -213,7 +213,7 @@ eqn = "corecpi ~ 1 + nairu_gap_lag1 + expcpi + corecpi_lag1 + reer"
     joint_teststats_pols_reer,
     reg_det_pols_reer,
 ) = reg_ols(df=df, eqn=eqn)
-file_name = path_output + "phillipscurve_nairu_base_lag1_usa_params_pols_reer"
+file_name = path_output + "phillipscurve_ugap_base_lag1_usa_params_pols_reer"
 list_file_names += [file_name]
 chart_title = "OLS: With REER (With Lagged NAIRU Gap; US-Only)"
 fig = heatmap(
@@ -264,9 +264,9 @@ df_loglik = pd.DataFrame(
     }
 )
 df_loglik = pd.DataFrame(df_loglik.set_index("Model"))
-file_name = path_output + "phillipscurve_nairu_base_usa_loglik"
+file_name = path_output + "phillipscurve_ugap_base_usa_loglik"
 list_file_names += [file_name]
-chart_title = "AICs and Log-Likelihood of Estimated Models \n(With NAIRU Gap)"
+chart_title = "AICs and Log-Likelihood of Estimated Models \n(With Plucking U-Rate Gap)"
 fig = heatmap(
     input=df_loglik,
     mask=False,
@@ -286,7 +286,7 @@ fig = heatmap(
 
 # %%
 # Compile all heat maps
-file_name_pdf = path_output + "phillipscurve_nairu_base_usa_params"
+file_name_pdf = path_output + "phillipscurve_ugap_base_usa_params"
 pil_img2pdf(list_images=list_file_names, extension="png", pdf_name=file_name_pdf)
 telsendfiles(conf=tel_config, path=file_name_pdf + ".pdf", cap=file_name_pdf)
 
@@ -294,7 +294,7 @@ telsendfiles(conf=tel_config, path=file_name_pdf + ".pdf", cap=file_name_pdf)
 # X --- Notify
 telsendmsg(
     conf=tel_config,
-    msg="global-plucking --- analysis_phillipscurve_nairu_base_usa: COMPLETED",
+    msg="global-plucking --- analysis_phillipscurve_ugap_base_usa: COMPLETED",
 )
 
 # End
