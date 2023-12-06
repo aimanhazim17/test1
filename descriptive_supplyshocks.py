@@ -206,15 +206,15 @@ df_sub = df_sub[
 df_sub["zero"] = 0
 # %%
 # Plot US u-rate, u-rate floor, and nairu (CBO) + wage inflation + oil shock
-cols_sec_y_bools = [False, False, False, False, True]
-cols_urates = ["urate", "urate_ceiling", "nairu", "wage", "maxoil"]
-cols_urates_nice = ["U-Rate", "U-Rate Floor", "NAIRU", "Wages", "Max-Oil"]
-cols_colours = ["black", "crimson", "darkblue", "lightslategrey", "orange"]
-cols_width = [2, 2, 2, 2, 2]
-cols_dash = ["solid", "dash", "dash", "solid", "solid"]
+cols_sec_y_bools = [False, False, False, True]
+cols_urates = ["urate_ceiling", "nairu", "wage", "maxoil"]
+cols_urates_nice = ["U-Rate Floor", "NAIRU", "Wages", "Max-Oil"]
+cols_colours = ["crimson", "darkblue", "lightslategrey", "orange"]
+cols_width = [2, 2, 2, 2]
+cols_dash = ["dash", "dash", "solid", "solid"]
 file_name = path_output + "supplyshocks_maxoil_united_states"
 chart_title = (
-    "Max-Oil (RHS; Supply Shocks), Wage Inflation, U-Rate, U-Rate Floor, and NAIRU in the US"
+    "Max-Oil (RHS; Supply Shocks), Wage Inflation, U-Rate Floor, and NAIRU in the US"
 )
 fig = lineplot_dualaxes(
     data=df_sub,
@@ -235,15 +235,15 @@ telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 
 # %%
 # Plot US u-rate, u-rate floor, and nairu (CBO) + wage inflation + wti
-cols_sec_y_bools = [False, False, False, False, True]
-cols_urates = ["urate", "urate_ceiling", "nairu", "wage", "wti"]
-cols_urates_nice = ["U-Rate", "U-Rate Floor", "NAIRU", "Wages", "WTI Oil Price"]
-cols_colours = ["black", "crimson", "darkblue", "lightslategrey", "orange"]
-cols_width = [2, 2, 2, 2, 2]
-cols_dash = ["solid", "dash", "dash", "solid", "solid"]
+cols_sec_y_bools = [False, False, False, True]
+cols_urates = ["urate_ceiling", "nairu", "wage", "wti"]
+cols_urates_nice = ["U-Rate Floor", "NAIRU", "Wages", "WTI Oil Price"]
+cols_colours = ["crimson", "darkblue", "lightslategrey", "orange"]
+cols_width = [2, 2, 2, 2]
+cols_dash = ["dash", "dash", "solid", "solid"]
 file_name = path_output + "supplyshocks_wti_united_states"
 chart_title = (
-    "WTI Oil Price (RHS), Wage Inflation, U-Rate, U-Rate Floor, and NAIRU in the US"
+    "WTI Oil Price (RHS), Wage Inflation, U-Rate Floor, and NAIRU in the US"
 )
 fig = lineplot_dualaxes(
     data=df_sub,
@@ -265,15 +265,15 @@ telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 
 # %%
 # Plot US u-rate, u-rate floor, and nairu (CBO) + wage inflation + lfpr
-cols_sec_y_bools = [False, False, False, False, True, True]
-cols_urates = ["urate", "urate_ceiling", "nairu", "wage", "lfpr"]
-cols_urates_nice = ["U-Rate", "U-Rate Floor", "NAIRU", "Wages", "LFPR"]
-cols_colours = ["black", "crimson", "darkblue", "lightslategrey", "darkorange"]
-cols_width = [2, 2, 2, 2, 2]
-cols_dash = ["solid", "dash", "dash", "solid", "solid"]
+cols_sec_y_bools = [False, False, False, True]
+cols_urates = ["urate_ceiling", "nairu", "wage", "lfpr"]
+cols_urates_nice = ["U-Rate Floor", "NAIRU", "Wages", "LFPR"]
+cols_colours = ["crimson", "darkblue", "lightslategrey", "darkorange"]
+cols_width = [2, 2, 2, 2]
+cols_dash = ["dash", "dash", "solid", "solid"]
 file_name = path_output + "supplyshocks_lfpr_united_states"
 chart_title = (
-    "LFPR (%; RHS), Wage Inflation, U-Rate, U-Rate Floor, and NAIRU in the US"
+    "LFPR (%; RHS), Wage Inflation, U-Rate Floor, and NAIRU in the US"
 )
 fig = lineplot_dualaxes(
     data=df_sub,
@@ -294,15 +294,15 @@ telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 
 # %%
 # Plot US u-rate, u-rate floor, and nairu (CBO) + wage inflation + lfpr + max-oil
-cols_sec_y_bools = [False, False, False, False, False, True, False]
-cols_urates = ["urate", "urate_ceiling", "nairu", "wage", "lfpr_yoy", "maxoil", "zero"]
-cols_urates_nice = ["U-Rate", "U-Rate Floor", "NAIRU", "Wages", "LFPR YoY", "Max-Oil", "Y=0 (LHS)"]
-cols_colours = ["black", "crimson", "darkblue", "lightslategrey", "darkgoldenrod", "orange", "black"]
-cols_width = [2, 2, 2, 2, 2, 2, 1]
-cols_dash = ["solid", "dash", "dash", "solid", "solid", "solid", "solid"]
+cols_sec_y_bools = [False, False, False, False, True, False]
+cols_urates = ["urate_ceiling", "nairu", "wage", "lfpr_yoy", "maxoil", "zero"]
+cols_urates_nice = ["U-Rate Floor", "NAIRU", "Wages", "LFPR YoY", "Max-Oil", "Y=0 (LHS)"]
+cols_colours = ["crimson", "darkblue", "lightslategrey", "darkgoldenrod", "orange", "black"]
+cols_width = [2, 2, 2, 2, 2, 1]
+cols_dash = ["dash", "dash", "solid", "solid", "solid", "solid"]
 file_name = path_output + "supplyshocks_maxoil_lfpr_united_states"
 chart_title = (
-    "LFPR (YoY; LHS), Max-Oil (RHS; Supply Shock), Wage Inflation, U-Rate, U-Rate Floor, and NAIRU in the US"
+    "LFPR (YoY; LHS), Max-Oil (RHS; Supply Shock), Wage Inflation, U-Rate Floor, and NAIRU in the US"
 )
 fig = lineplot_dualaxes(
     data=df_sub,
@@ -323,6 +323,7 @@ telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 
 # %%
 # Tabulate u-rate floor during periods of oil shocks, and otherwise
+df_sub["oil_shock"] = ""
 df_sub.loc[df_sub["maxoil"] == 0, "oil_shock"] = "Max Oil = 0"
 df_sub.loc[df_sub["maxoil"] > 0, "oil_shock"] = "Max Oil > 0"
 df_sub.loc[df_sub["maxoil"] >= 10, "oil_shock"] = "Max Oil >= 10"
