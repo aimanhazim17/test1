@@ -284,7 +284,47 @@ fig = heatmap(
 # telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 
 # %%
-# VARX analysis
+# LP analysis
+# cols_rate_add = ["urate_ceiling", "nairu", "stir"]
+# for col in cols_rate_add:
+#     df[col] = df[col] - df[col].shift(4)
+# Transform more variables
+for urate_col in ["urate_ceiling", "nairu"]:
+    # Setup
+    endog_base = [
+        "maxoil",
+    ]  + [urate_col]  # + ["corecpi", "reer", "expcpi"]
+    df_sub = df[endog_base].copy()
+    # Estimate
+    irf = lp.TimeSeriesLP(
+        data=df_sub,
+        Y=endog_base,
+        response=endog_base,
+        horizon=12,
+        lags=1,
+        newey_lags=1,
+        ci_width=0.95,
+    )
+    file_name = path_output + "supplyshocks_lp" + "_" + urate_col + "_usa"
+    irf.to_parquet(file_name + ".parquet")
+    # Plot
+    fig_irf = lp.IRFPlot(
+        irf=irf,
+        response=endog_base,
+        shock=endog_base,
+        n_columns=len(endog_base),
+        n_rows=len(endog_base),
+        maintitle="IRFs (US)",
+        show_fig=False,
+        save_pic=False,
+        out_path="",
+        out_name="",
+        annot_size=14,
+        font_size=16,
+    )
+    list_file_names += [file_name]
+    fig_irf.write_image(file_name + ".png", height=1080, width=1920)
+    telsendimg(conf=tel_config, path=file_name + ".png", cap=file_name)
 
 
 # %%
