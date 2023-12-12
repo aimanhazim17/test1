@@ -151,13 +151,13 @@ fig_irf = lp.ThresholdIRFPlot(
     shock=endog_base,
     n_columns=len(endog_base),
     n_rows=len(endog_base),
-    maintitle="Local Projections Model: Impulse Response Functions (Emerging Economies); Red = U-Rate is At its Floor",
+    maintitle="Local projections model: impulse response functions (EMEs); red = u-rate is at the floor",
     show_fig=False,
     save_pic=False,
     out_path="",
     out_name="",
     annot_size=14,
-    font_size=16,
+    font_size=20,
 )
 fig_irf.write_image(file_name + ".png", height=1080, width=1920)
 telsendimg(conf=tel_config, path=file_name + ".png", cap=file_name)

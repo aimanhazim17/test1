@@ -127,6 +127,8 @@ df = df.set_index(["country", "time"])
 # III --- Analysis
 # Setup
 endog_base = ["privdebt", "stir", "rgdp", "corecpi", "reer", "expcpi"]
+endog_base_nice = ["Private Debt", "STIR", "Real GDP", "Core CPI", "REER", "Expected Inflation"]
+dict_endog_base_nice = dict(zip(endog_base, endog_base_nice))
 exog_base = ["brent", "gepu", "maxgepu"]
 # Estimate
 irf_on, irf_off = lp.ThresholdPanelLPX(
@@ -143,24 +145,47 @@ irf_on, irf_off = lp.ThresholdPanelLPX(
 file_name = path_output + "macrodynamics_rgdp_threshold_lp_irf"
 irf_on.to_parquet(file_name + "_on" + ".parquet")
 irf_off.to_parquet(file_name + "_off" + ".parquet")
+# Beautify names
+irf_on[["Shock", "Response"]] = irf_on[["Shock", "Response"]].replace(dict_endog_base_nice)
+irf_off[["Shock", "Response"]] = irf_off[["Shock", "Response"]].replace(dict_endog_base_nice)
 # Plot
 fig_irf = lp.ThresholdIRFPlot(
     irf_threshold_on=irf_on,
     irf_threshold_off=irf_off,
-    response=endog_base,
-    shock=endog_base,
-    n_columns=len(endog_base),
-    n_rows=len(endog_base),
-    maintitle="Local Projections Model: Impulse Response Functions; Red = U-Rate is At its Floor",
+    response=endog_base_nice,
+    shock=endog_base_nice,
+    n_columns=len(endog_base_nice),
+    n_rows=len(endog_base_nice),
+    maintitle="Local projections model: impulse response functions; red = u-rate is at the floor",
     show_fig=False,
     save_pic=False,
     out_path="",
     out_name="",
-    annot_size=14,
-    font_size=16,
+    annot_size=18,
+    font_size=24,
 )
 fig_irf.write_image(file_name + ".png", height=1080, width=1920)
 telsendimg(conf=tel_config, path=file_name + ".png", cap=file_name)
+# Plot shock by shock
+for shock, shock_snakecase in tqdm(zip(endog_base_nice, endog_base)):
+    file_name = path_output + "macrodynamics_rgdp_threshold_lp_irf" + "_" + shock_snakecase
+    fig_irf = lp.ThresholdIRFPlot(
+        irf_threshold_on=irf_on,
+        irf_threshold_off=irf_off,
+        response=endog_base_nice,
+        shock=[shock],
+        n_columns=3,
+        n_rows=2,
+        maintitle="Local projections model (responses to " + shock + " shocks); red = u-rate is at the floor",
+        show_fig=False,
+        save_pic=False,
+        out_path="",
+        out_name="",
+        annot_size=32,
+        font_size=24,
+    )
+    fig_irf.write_image(file_name + ".png", height=1080, width=1920)
+    telsendimg(conf=tel_config, path=file_name + ".png", cap=file_name)
 
 # %%
 # X --- Notify

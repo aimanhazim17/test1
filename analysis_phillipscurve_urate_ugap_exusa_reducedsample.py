@@ -126,9 +126,23 @@ del df["quarter"]
 # Chart settings
 heatmaps_y_fontsize = 12
 heatmaps_x_fontsize = 12
-heatmaps_title_fontsize = 12
-heatmaps_annot_fontsize = 12
+heatmaps_title_fontsize = 18
+heatmaps_annot_fontsize = 18
 list_file_names = []
+dict_math_greek = {
+    "urate": r"$u_{t}$",
+    "urate_usa": r"$u_{t}^{usa}$",
+    "urate_gap": r"$u^{gap}_{t}$",
+    "urate_gap_usa": r"$u^{gap, USA}_{t}$",
+    "urate:urate_gap": r"$u_{t} * u^{gap}_{t}$",
+    "urate_usa:urate_gap_usa": r"$u_{t}^{USA} * u^{gap, USA}_{t}$",
+    "urate_int_urate_gap": r"$u_{t} * u^{gap}_{t}$",
+    "urate_int_urate_gap_usa": r"$u_{t}^{USA} * u^{gap, USA}_{t}$",
+    "expcpi": r"$\mathbb{E}_{t}\pi$",
+    "corecpi_lag1": r"$\pi_{t-1}$",
+    "reer": r"$z_{t}$",
+    "Intercept": r"$\alpha$",
+}
 # %%
 # POLS
 # Without REER
@@ -138,7 +152,8 @@ mod_pols, res_pols, params_table_pols, joint_teststats_pols, reg_det_pols = reg_
 )
 file_name = path_output + "phillipscurve_urate_ugap_exusa_reducedsample_params_pols"
 list_file_names += [file_name]
-chart_title = "Pooled OLS: Without REER \n(Controlling for US U-Rate; Excluding MYS, IND, BRA)"
+chart_title = "Pooled OLS: without REER \n(controlling for US u-rate; \nexcluding MYS, IND, BRA)"
+params_table_pols = params_table_pols.rename(index=dict_math_greek)
 fig = heatmap(
     input=params_table_pols,
     mask=False,
@@ -168,7 +183,8 @@ file_name = (
     path_output + "phillipscurve_urate_ugap_exusa_reducedsample_params_pols_reer"
 )
 list_file_names += [file_name]
-chart_title = "Pooled OLS: With REER \n(Controlling for US U-Rate; Excluding MYS, IND, BRA)"
+chart_title = "Pooled OLS: with REER \n(controlling for US u-rate; \nexcluding MYS, IND, BRA)"
+params_table_pols_reer = params_table_pols_reer.rename(index=dict_math_greek)
 fig = heatmap(
     input=params_table_pols_reer,
     mask=False,
@@ -209,7 +225,8 @@ mod_fe, res_fe, params_table_fe, joint_teststats_fe, reg_det_fe = fe_reg(
 )
 file_name = path_output + "phillipscurve_urate_ugap_exusa_reducedsample_params_fe"
 list_file_names += [file_name]
-chart_title = "FE: Without REER \n(Controlling for US U-Rate; Excluding MYS, IND, BRA)"
+chart_title = "FE: without REER \n(controlling for US u-rate; \nexcluding MYS, IND, BRA)"
+params_table_fe = params_table_fe.rename(index=dict_math_greek)
 fig = heatmap(
     input=params_table_fe,
     mask=False,
@@ -255,7 +272,8 @@ fig = heatmap(
 )
 file_name = path_output + "phillipscurve_urate_ugap_exusa_reducedsample_params_fe_reer"
 list_file_names += [file_name]
-chart_title = "FE: With REER \n(Controlling for US U-Rate; Excluding MYS, IND, BRA)"
+chart_title = "FE: with REER \n(controlling for US u-rate; \nexcluding MYS, IND, BRA)"
+params_table_fe_reer = params_table_fe_reer.rename(index=dict_math_greek)
 fig = heatmap(
     input=params_table_fe_reer,
     mask=False,

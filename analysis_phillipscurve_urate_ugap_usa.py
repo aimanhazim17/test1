@@ -112,9 +112,20 @@ del df["quarter"]
 # Chart settings
 heatmaps_y_fontsize = 12
 heatmaps_x_fontsize = 12
-heatmaps_title_fontsize = 12
-heatmaps_annot_fontsize = 12
+heatmaps_title_fontsize = 18
+heatmaps_annot_fontsize = 18
 list_file_names = []
+dict_math_greek = {
+    "urate": r"$u_{t}$",
+    "urate_gap": r"$u^{plucking \ gap}_{t}$",
+    "nairu_gap": r"$u^{nairu \ gap}_{t}$",
+    "urate:urate_gap": r"$u_{t} * u^{plucking \ gap}_{t}$",
+    "urate:nairu_gap": r"$u_{t} * u^{nairu \ gap}_{t}$",
+    "expcpi": r"$\mathbb{E}_{t}\pi$",
+    "corecpi_lag1": r"$\pi_{t-1}$",
+    "reer": r"$z_{t}$",
+    "Intercept": r"$\alpha$",
+}
 # %%
 # POLS
 # Without REER
@@ -124,7 +135,8 @@ mod_pols, res_pols, params_table_pols, joint_teststats_pols, reg_det_pols = reg_
 )
 file_name = path_output + "phillipscurve_urate_ugap_usa_params_pols"
 list_file_names += [file_name]
-chart_title = "OLS: Without REER (US-Only)"
+chart_title = "OLS: without REER \n(full model with plucking u-rate gap; US-only)"
+params_table_pols = params_table_pols.rename(index=dict_math_greek)
 fig = heatmap(
     input=params_table_pols,
     mask=False,
@@ -152,7 +164,8 @@ eqn = "corecpi ~ 1 + urate * urate_gap + expcpi + corecpi_lag1 + reer"
 ) = reg_ols(df=df, eqn=eqn)
 file_name = path_output + "phillipscurve_urate_ugap_usa_params_pols_reer"
 list_file_names += [file_name]
-chart_title = "OLS: With REER (US-Only)"
+chart_title = "OLS: with REER \n(full model with plucking u-rate gap; US-only)"
+params_table_pols_reer = params_table_pols_reer.rename(index=dict_math_greek)
 fig = heatmap(
     input=params_table_pols_reer,
     mask=False,
@@ -175,8 +188,8 @@ fig = heatmap(
 df_loglik = pd.DataFrame(
     {
         "Model": [
-            "OLS: Without REER",
-            "OLS: With REER",
+            "OLS: without REER",
+            "OLS: with REER",
         ],
         "AICc": [
             (-2 * res_pols.llf + 2 * res_pols.df_model)
@@ -203,7 +216,7 @@ df_loglik = pd.DataFrame(
 df_loglik = pd.DataFrame(df_loglik.set_index("Model"))
 file_name = path_output + "phillipscurve_urate_ugap_usa_loglik"
 list_file_names += [file_name]
-chart_title = "AICs and Log-Likelihood of Estimated Models (US-Only)"
+chart_title = "AICs and log-likelihood \nof estimated models \n(full model with plucking u-rate gap; US-only)"
 fig = heatmap(
     input=df_loglik,
     mask=False,

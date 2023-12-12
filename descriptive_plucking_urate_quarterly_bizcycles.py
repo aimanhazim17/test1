@@ -242,7 +242,7 @@ fig_expcon = scatterplot(
     marker_size=9,
     best_fit_colour="black",
     best_fit_width=3,
-    main_title="Unemployment Rate: Subsequent Contraction Pace vs. Expansion Pace (QoQ SA)",
+    main_title="Unemployment rate: subsequent contraction pace (vertical) <br> vs. expansion pace (horizontal); QoQ SA",
 )
 file_name = path_output + "urate_quarterly_bizcycles_expcon"
 list_file_names += [file_name]
@@ -260,7 +260,7 @@ fig_conexp = scatterplot(
     marker_size=9,
     best_fit_colour="crimson",
     best_fit_width=3,
-    main_title="Unemployment Rate: Subsequent Expansion Pace vs. Contraction Pace (QoQ SA)",
+    main_title="Unemployment rate: subsequent expansion pace (vertical) <br> vs. contraction pace (horizontal); QoQ SA",
 )
 file_name = path_output + "urate_quarterly_bizcycles_conexp"
 list_file_names += [file_name]
@@ -279,7 +279,7 @@ fig_expcon_trimmed = scatterplot(
     marker_size=9,
     best_fit_colour="black",
     best_fit_width=3,
-    main_title="Unemployment Rate: Subsequent Contraction Pace vs. Expansion Pace (QoQ SA); Without Outliers",
+    main_title="Unemployment rate: subsequent contraction pace (vertical) <br> vs. expansion pace (horizontal); QoQ SA, without outliers",
 )
 file_name = path_output + "urate_quarterly_bizcycles_expcon_trimmed"
 list_file_names += [file_name]
@@ -297,7 +297,7 @@ fig_conexp_trimmed = scatterplot(
     marker_size=9,
     best_fit_colour="crimson",
     best_fit_width=3,
-    main_title="Unemployment Rate: Subsequent Expansion Pace vs. Contraction Pace (QoQ SA); Without Outliers",
+    main_title="Unemployment rate: subsequent expansion pace (vertical) <br> vs. contraction pace (horizontal); QoQ SA, without outliers",
 )
 file_name = path_output + "urate_quarterly_bizcycles_conexp_trimmed"
 list_file_names += [file_name]
@@ -316,7 +316,8 @@ fig_expcon_avg = scatterplot(
     marker_size=9,
     best_fit_colour="black",
     best_fit_width=3,
-    main_title="Unemployment Rate: Subsequent Contraction Pace vs. Expansion Pace (QoQ SA); Country Averages",
+    main_title="Unemployment rate: subsequent contraction pace (vertical) <br> vs. expansion pace (horizontal); QoQ SA, without outliers, country averages",
+    font_size=22
 )
 file_name = path_output + "urate_quarterly_bizcycles_expcon_avg"
 list_file_names += [file_name]
@@ -334,7 +335,8 @@ fig_conexp_avg = scatterplot(
     marker_size=9,
     best_fit_colour="crimson",
     best_fit_width=3,
-    main_title="Unemployment Rate: Subsequent Expansion Pace vs. Contraction Pace (QoQ SA); Country Averages",
+    main_title="Unemployment rate: subsequent expansion pace (vertical) <br> vs. contraction pace (horizontal); QoQ SA, without outliers, country averages",
+    font_size=22
 )
 file_name = path_output + "urate_quarterly_bizcycles_conexp_avg"
 list_file_names += [file_name]

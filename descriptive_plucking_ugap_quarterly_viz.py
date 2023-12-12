@@ -87,6 +87,28 @@ nice_group_names_by_country_groups = ["ASEAN-4", "Asian NIEs", "Major EMs", "AEs
 snakecase_group_names_by_country_groups = ["asean4", "asianie", "bigemerging", "adv"]
 rows_by_country_groups = [2, 2, 2, 3]
 cols_by_country_groups = [2, 2, 3, 3]
+# Dictionary to change snake case names to nice names
+dict_countries_snake_to_nice = {
+    "australia": "Australia",
+    "malaysia": "Malaysia",
+    "singapore": "Singapore",
+    "thailand": "Thailand",
+    "indonesia": "Indonesia",
+    "philippines": "Philippines",
+    "united_states": "United States",
+    "united_kingdom": "United Kingdom",
+    "germany": "Germany",
+    "france": "France",
+    "italy": "Italy",
+    "japan": "Japan",
+    "south_korea": "South Korea",
+    "hong_kong_sar_china_": "Hong Kong SAR",
+    "india": "India",
+    "china": "China",
+    "chile": "Chile",
+    "mexico": "Mexico",
+    "brazil": "Brazil",
+}
 
 # %%
 # III --- Plot
@@ -101,17 +123,19 @@ for country_groups, snakecase_group_name, nice_group_name, n_rows, n_cols in tqd
     )
 ):
     df_sub = df[df["country"].isin(country_groups)].copy()
+    df_sub["country"] = df_sub["country"].replace(dict_countries_snake_to_nice)
     fig_urate_and_ceiling = subplots_linecharts(
         data=df_sub,
         col_group="country",
         cols_values=["urate", "urate_ceiling"],
         cols_values_nice=["U-Rate", "U-Rate Floor"],
         col_time="quarter",
-        annot_size=12,
-        font_size=12,
+        annot_size=26,
+        font_size=14,
+        title_size=28,
         line_colours=["black", "red"],
         line_dashes=["solid", "dash"],
-        main_title="Quarterly unemployment rate and estimated 'Plucking' floor in "
+        main_title="Quarterly unemployment rate and estimated floor in "
         + nice_group_name,
         maxrows=n_rows,
         maxcols=n_cols,

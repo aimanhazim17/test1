@@ -98,6 +98,28 @@ nice_group_names_by_country_groups = ["ASEAN-4", "Asian NIEs", "Major EMs", "AEs
 snakecase_group_names_by_country_groups = ["asean4", "asianie", "bigemerging", "adv"]
 rows_by_country_groups = [2, 2, 2, 3]
 cols_by_country_groups = [2, 2, 2, 3]
+# Dictionary to change snake case names to nice names
+dict_countries_snake_to_nice = {
+    "australia": "Australia",
+    "malaysia": "Malaysia",
+    "singapore": "Singapore",
+    "thailand": "Thailand",
+    "indonesia": "Indonesia",
+    "philippines": "Philippines",
+    "united_states": "United States",
+    "united_kingdom": "United Kingdom",
+    "germany": "Germany",
+    "france": "France",
+    "italy": "Italy",
+    "japan": "Japan",
+    "south_korea": "South Korea",
+    "hong_kong_sar_china_": "Hong Kong SAR",
+    "india": "India",
+    "china": "China",
+    "chile": "Chile",
+    "mexico": "Mexico",
+    "brazil": "Brazil",
+}
 
 # %%
 # III --- Compute dynamic slope + trim data set
@@ -133,6 +155,7 @@ for country_groups, snakecase_group_name, nice_group_name, n_rows, n_cols in tqd
 ):
     # subset country
     df_sub = df[df["country"].isin(country_groups)].copy()
+    df_sub["country"] = df_sub["country"].replace(dict_countries_snake_to_nice)
     # plot the PC slope
     fig = subplots_linecharts(
         data=df_sub,
@@ -140,11 +163,12 @@ for country_groups, snakecase_group_name, nice_group_name, n_rows, n_cols in tqd
         cols_values=["slope", "slope_lb", "slope_ub", "zero"],
         cols_values_nice=["Slope of the Estimated PC", "Lower Bound", "Upper Bound", "Slope=0"],
         col_time="quarter",
-        annot_size=11,
-        font_size=11,
+        annot_size=26,
+        font_size=14,
+        title_size=28,
         line_colours=["black", "black", "black", "darkgrey"],
         line_dashes=["solid", "dash", "dash", "dot"],
-        main_title=("Estimated Phillips Curve Slope" + " in " + nice_group_name),
+        main_title=("Estimated Phillips curve slope" + " in " + nice_group_name),
         maxrows=n_rows,
         maxcols=n_cols,
     )
@@ -165,11 +189,12 @@ for country_groups, snakecase_group_name, nice_group_name, n_rows, n_cols in tqd
         cols_values=["perc_flattening"],
         cols_values_nice=["Degree of Flattening"],
         col_time="quarter",
-        annot_size=11,
-        font_size=11,
+        annot_size=26,
+        font_size=14,
+        title_size=28,
         line_colours=["darkgrey"],
         line_dashes=["solid"],
-        main_title=("Percentage Change in Estimated Slope Relative to When U-Rate Gap = 0" + " in " + nice_group_name),
+        main_title=("Percentage change in estimated slope relative to when u-rate gap = 0" + " in " + nice_group_name),
         maxrows=n_rows,
         maxcols=n_cols,
     )

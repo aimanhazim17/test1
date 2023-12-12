@@ -259,7 +259,7 @@ fig_expcon = scatterplot(
     marker_size=9,
     best_fit_colour="black",
     best_fit_width=3,
-    main_title="Unemployment Rate: Subsequent Contraction Amplitude vs. Expansion Amplitude",
+    main_title="Unemployment rate: subsequent contraction amplitude (vertical) <br> vs. expansion amplitude (horizontal)",
 )
 file_name = path_output + "urate_quarterly_bizcycles_amplitude_expcon"
 list_file_names += [file_name]
@@ -277,7 +277,7 @@ fig_conexp = scatterplot(
     marker_size=9,
     best_fit_colour="crimson",
     best_fit_width=3,
-    main_title="Unemployment Rate: Subsequent Expansion Amplitude vs. Contraction Amplitude",
+    main_title="Unemployment rate: subsequent expansion amplitude (vertical) <br> vs. contraction amplitude (horizontal)",
 )
 file_name = path_output + "urate_quarterly_bizcycles_amplitude_conexp"
 list_file_names += [file_name]
@@ -296,7 +296,7 @@ fig_expcon_trimmed = scatterplot(
     marker_size=9,
     best_fit_colour="black",
     best_fit_width=3,
-    main_title="Unemployment Rate: Subsequent Contraction Amplitude vs. Expansion Amplitude; Without Outliers",
+    main_title="Unemployment rate: subsequent contraction amplitude (vertical) <br> vs. expansion amplitude (horizontal); without outliers",
 )
 file_name = path_output + "urate_quarterly_bizcycles_amplitude_expcon_trimmed"
 list_file_names += [file_name]
@@ -314,7 +314,7 @@ fig_conexp_trimmed = scatterplot(
     marker_size=9,
     best_fit_colour="crimson",
     best_fit_width=3,
-    main_title="Unemployment Rate: Subsequent Expansion Amplitude vs. Contraction Amplitude; Without Outliers",
+    main_title="Unemployment rate: subsequent expansion amplitude (vertical) <br> vs. contraction amplitude (horizontal); without outliers",
 )
 file_name = path_output + "urate_quarterly_bizcycles_amplitude_conexp_trimmed"
 list_file_names += [file_name]
@@ -333,7 +333,8 @@ fig_expcon_avg = scatterplot(
     marker_size=9,
     best_fit_colour="black",
     best_fit_width=3,
-    main_title="Unemployment Rate: Subsequent Contraction Amplitude vs. Expansion Amplitude; Country Averages",
+    main_title="Unemployment rate: subsequent contraction amplitude (vertical) <br> vs. expansion amplitude (horizontal); without outliers, country averages",
+    font_size=22
 )
 file_name = path_output + "urate_quarterly_bizcycles_amplitude_expcon_avg"
 list_file_names += [file_name]
@@ -351,7 +352,8 @@ fig_conexp_avg = scatterplot(
     marker_size=9,
     best_fit_colour="crimson",
     best_fit_width=3,
-    main_title="Unemployment Rate: Subsequent Expansion Amplitude vs. Contraction Amplitude; Country Averages",
+    main_title="Unemployment rate: subsequent expansion amplitude (vertical) <br> vs. contraction amplitude (horizontal); without outliers, country averages",
+    font_size=22
 )
 file_name = path_output + "urate_quarterly_bizcycles_amplitude_conexp_avg"
 list_file_names += [file_name]

@@ -214,7 +214,7 @@ cols_width = [2, 2, 2, 2]
 cols_dash = ["dash", "dash", "solid", "solid"]
 file_name = path_output + "supplyshocks_maxoil_united_states"
 chart_title = (
-    "Max-Oil (RHS; Supply Shocks), Wage Inflation, U-Rate Floor, and NAIRU in the US"
+    "Max-oil (RHS), wage inflation, u-rate floor and the NAIRU in the US"
 )
 fig = lineplot_dualaxes(
     data=df_sub,
@@ -229,6 +229,7 @@ fig = lineplot_dualaxes(
     line_widths=cols_width,
     line_dashes=cols_dash,
     main_title=chart_title,
+    title_size=24
 )
 fig.write_image(file_name + ".png")
 telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
@@ -243,7 +244,7 @@ cols_width = [2, 2, 2, 2]
 cols_dash = ["dash", "dash", "solid", "solid"]
 file_name = path_output + "supplyshocks_wti_united_states"
 chart_title = (
-    "WTI Oil Price (RHS), Wage Inflation, U-Rate Floor, and NAIRU in the US"
+    "WTI oil price (RHS), wage inflation, u-rate floor and the NAIRU in the US"
 )
 fig = lineplot_dualaxes(
     data=df_sub,
@@ -258,6 +259,7 @@ fig = lineplot_dualaxes(
     line_widths=cols_width,
     line_dashes=cols_dash,
     main_title=chart_title,
+    title_size=24
 )
 fig.write_image(file_name + ".png")
 telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
@@ -273,7 +275,7 @@ cols_width = [2, 2, 2, 2]
 cols_dash = ["dash", "dash", "solid", "solid"]
 file_name = path_output + "supplyshocks_lfpr_united_states"
 chart_title = (
-    "LFPR (%; RHS), Wage Inflation, U-Rate Floor, and NAIRU in the US"
+    "LFPR (%; RHS), wage inflation, u-rate floor and the NAIRU in the US"
 )
 fig = lineplot_dualaxes(
     data=df_sub,
@@ -288,6 +290,7 @@ fig = lineplot_dualaxes(
     line_widths=cols_width,
     line_dashes=cols_dash,
     main_title=chart_title,
+    title_size=24
 )
 fig.write_image(file_name + ".png")
 telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
@@ -302,7 +305,7 @@ cols_width = [2, 2, 2, 2, 2, 1]
 cols_dash = ["dash", "dash", "solid", "solid", "solid", "solid"]
 file_name = path_output + "supplyshocks_maxoil_lfpr_united_states"
 chart_title = (
-    "LFPR (YoY; LHS), Max-Oil (RHS; Supply Shock), Wage Inflation, U-Rate Floor, and NAIRU in the US"
+    "LFPR (YoY; LHS), max-oil (RHS), wage inflation, u-rate floor and the NAIRU in the US"
 )
 fig = lineplot_dualaxes(
     data=df_sub,
@@ -317,6 +320,7 @@ fig = lineplot_dualaxes(
     line_widths=cols_width,
     line_dashes=cols_dash,
     main_title=chart_title,
+    title_size=24
 )
 fig.write_image(file_name + ".png")
 telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
@@ -331,7 +335,7 @@ df_sub.loc[df_sub["maxoil"] >= 20, "oil_shock"] = "Max Oil >= 20"
 tab_by_oilshocks = df_sub.groupby("oil_shock")[
     ["nairu", "urate_ceiling", "urate", "wage", "lfpr"]
 ].mean()
-chart_title = "Average NAIRU, u-rate floor, u-rate, wage inflation, and LFPR during and outside of periods of oil shocks"
+chart_title = "Average NAIRU, u-rate floor, u-rate, wage inflation and LFPR during and outside of periods of oil shocks"
 file_name = path_output + "supplyshocks_maxoil_tab_united_states"
 fig = heatmap(
     input=tab_by_oilshocks,

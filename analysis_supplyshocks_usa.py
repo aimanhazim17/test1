@@ -293,8 +293,9 @@ for urate_col in ["urate_ceiling", "nairu"]:
     # Setup
     endog_base = [
         "maxoil",
-    ]  + [urate_col]  # + ["corecpi", "reer", "expcpi"]
+    ]  + [urate_col] + ["corecpi", "reer", "expcpi"]
     df_sub = df[endog_base].copy()
+    df_sub.loc[df_sub["maxoil"] < 15, "maxoil"] = 0  # only big shocks
     # Estimate
     irf = lp.TimeSeriesLP(
         data=df_sub,

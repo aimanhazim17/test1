@@ -766,6 +766,7 @@ def lineplot(
     line_widths: list[int],
     line_dashes: list[str],
     main_title: str,
+    font_size: int = 24
 ):
     # prelims
     df = data.copy()
@@ -792,7 +793,7 @@ def lineplot(
     fig.update_layout(
         title=main_title,
         plot_bgcolor="white",
-        font=dict(color="black", size=16),
+        font=dict(color="black", size=font_size),
         height=768,
         width=1366,
     )
@@ -813,6 +814,7 @@ def lineplot_dualaxes(
     line_widths: list[int],
     line_dashes: list[str],
     main_title: str,
+    title_size:int = 24
 ):
     # prelims
     df = data.copy()
@@ -840,7 +842,7 @@ def lineplot_dualaxes(
     fig.update_layout(
         title=main_title,
         plot_bgcolor="white",
-        font=dict(color="black", size=16),
+        font=dict(color="black", size=title_size),
         height=768,
         width=1366,
     )
@@ -861,6 +863,7 @@ def scatterplot(
     best_fit_colour: str,
     best_fit_width: int,
     main_title: str,
+    font_size: int = 26
 ):
     # generate figure
     fig = go.Figure()
@@ -904,7 +907,7 @@ def scatterplot(
     fig.update_layout(
         title=main_title,
         plot_bgcolor="white",
-        font=dict(color="black", size=16),
+        font=dict(color="black", size=font_size),
         height=768,
         width=1366,
     )
@@ -1021,6 +1024,83 @@ def barchart(
         width=1366,
     )
     fig.update_traces(textfont_size=22)
+    # output
+    return fig
+
+
+def stacked_barchart(
+    data: pd.DataFrame, 
+    stacked_y_cols: list[str], 
+    stacked_colours: list[str],
+    x_col: str, 
+    main_title: str, 
+    decimal_points: int,
+    font_size: float,
+    bar_callout_size: float,
+):
+    # generate figure
+    fig = go.Figure()
+    # add bar chart
+    for stacked_y_col, stacked_colour in zip(stacked_y_cols, stacked_colours):
+        fig.add_trace(
+            go.Bar(
+                x=data[x_col],
+                y=data[stacked_y_col],
+                name=stacked_y_col,
+                marker=dict(color=stacked_colour),
+                text=data[stacked_y_col].round(decimal_points).astype("str"),
+                textposition="inside",
+            )
+        )
+    # layouts
+    fig.update_layout(
+        title=main_title,
+        plot_bgcolor="white",
+        font=dict(color="black", size=font_size),
+        barmode='stack',
+        height=768,
+        width=1366,
+    )
+    fig.update_traces(textfont_size=bar_callout_size)
+    # output
+    return fig
+
+
+def stacked_barchart_overlaycallouts(
+    data: pd.DataFrame, 
+    stacked_y_cols: list[str], 
+    callouts_stacked_y_cols: list[str], 
+    stacked_colours: list[str],
+    x_col: str, 
+    main_title: str, 
+    decimal_points: int,
+    font_size: float,
+    bar_callout_size: float,
+):
+    # generate figure
+    fig = go.Figure()
+    # add bar chart
+    for stacked_y_col, callouts_stacked_y_col, stacked_colour in zip(stacked_y_cols, callouts_stacked_y_cols, stacked_colours):
+        fig.add_trace(
+            go.Bar(
+                x=data[x_col],
+                y=data[stacked_y_col],
+                name=stacked_y_col,
+                marker=dict(color=stacked_colour),
+                text=data[callouts_stacked_y_col],  # different column
+                textposition="inside",
+            )
+        )
+    # layouts
+    fig.update_layout(
+        title=main_title,
+        plot_bgcolor="white",
+        font=dict(color="black", size=font_size),
+        barmode='stack',
+        height=768,
+        width=1366,
+    )
+    fig.update_traces(textfont_size=bar_callout_size)
     # output
     return fig
 
@@ -1249,6 +1329,7 @@ def subplots_linecharts(
     main_title: str,
     maxrows: int,
     maxcols: int,
+    title_size: int = 24,
 ):
     # Create titles first
     titles = []
@@ -1304,6 +1385,7 @@ def subplots_linecharts(
         plot_bgcolor="white",
         hovermode="x",
         font=dict(color="black", size=font_size),
+        title_font_size=title_size,
         showlegend=True,
         barmode="relative",
         height=768,

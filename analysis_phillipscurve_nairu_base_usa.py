@@ -120,9 +120,20 @@ del df["country"]
 # Chart settings
 heatmaps_y_fontsize = 12
 heatmaps_x_fontsize = 12
-heatmaps_title_fontsize = 12
-heatmaps_annot_fontsize = 12
+heatmaps_title_fontsize = 24
+heatmaps_annot_fontsize = 22
 list_file_names = []
+dict_math_greek = {
+    "urate": r"$u_{t}$",
+    "urate_gap": r"$u^{plucking \ gap}_{t}$",
+    "nairu_gap": r"$u^{nairu \ gap}_{t}$",
+    "urate:urate_gap": r"$u_{t} * u^{plucking \ gap}_{t}$",
+    "urate:nairu_gap": r"$u_{t} * u^{nairu \ gap}_{t}$",
+    "expcpi": r"$\mathbb{E}_{t}\pi$",
+    "corecpi_lag1": r"$\pi_{t-1}$",
+    "reer": r"$z_{t}$",
+    "Intercept": r"$\alpha$",
+}
 # %%
 # POLS (NAIRU)
 # Without REER
@@ -132,7 +143,8 @@ mod_pols, res_pols, params_table_pols, joint_teststats_pols, reg_det_pols = reg_
 )
 file_name = path_output + "phillipscurve_nairu_base_usa_params_pols"
 list_file_names += [file_name]
-chart_title = "OLS: Without REER (With NAIRU Gap; US-Only)"
+chart_title = "OLS: without REER \n(with NAIRU gap; US-only)"
+params_table_pols = params_table_pols.rename(index=dict_math_greek)
 fig = heatmap(
     input=params_table_pols,
     mask=False,
@@ -160,7 +172,8 @@ eqn = "corecpi ~ 1 + nairu_gap + expcpi + corecpi_lag1 + reer"
 ) = reg_ols(df=df, eqn=eqn)
 file_name = path_output + "phillipscurve_nairu_base_usa_params_pols_reer"
 list_file_names += [file_name]
-chart_title = "OLS: With REER (With NAIRU Gap; US-Only)"
+chart_title = "OLS: with REER \n(with NAIRU gap; US-only)"
+params_table_pols_reer = params_table_pols_reer.rename(index=dict_math_greek)
 fig = heatmap(
     input=params_table_pols_reer,
     mask=False,
@@ -187,7 +200,7 @@ mod_pols_lag1, res_pols_lag1, params_table_pols_lag1, joint_teststats_pols_lag1,
 )
 file_name = path_output + "phillipscurve_nairu_base_lag1_usa_params_pols"
 list_file_names += [file_name]
-chart_title = "OLS: Without REER (With Lagged NAIRU Gap; US-Only)"
+chart_title = "OLS: without REER \n(with lagged NAIRU gap; US-only)"
 fig = heatmap(
     input=params_table_pols_lag1,
     mask=False,
@@ -215,7 +228,7 @@ eqn = "corecpi ~ 1 + nairu_gap_lag1 + expcpi + corecpi_lag1 + reer"
 ) = reg_ols(df=df, eqn=eqn)
 file_name = path_output + "phillipscurve_nairu_base_lag1_usa_params_pols_reer"
 list_file_names += [file_name]
-chart_title = "OLS: With REER (With Lagged NAIRU Gap; US-Only)"
+chart_title = "OLS: with REER \n(with lagged NAIRU gap; US-only)"
 fig = heatmap(
     input=params_table_pols_reer,
     mask=False,
@@ -238,8 +251,8 @@ fig = heatmap(
 df_loglik = pd.DataFrame(
     {
         "Model": [
-            "OLS: Without REER",
-            "OLS: With REER",
+            "OLS: without REER",
+            "OLS: with REER",
         ],
         "AICc": [
             (-2 * res_pols.llf + 2 * res_pols.df_model)
@@ -266,7 +279,7 @@ df_loglik = pd.DataFrame(
 df_loglik = pd.DataFrame(df_loglik.set_index("Model"))
 file_name = path_output + "phillipscurve_nairu_base_usa_loglik"
 list_file_names += [file_name]
-chart_title = "AICs and Log-Likelihood of Estimated Models \n(With NAIRU Gap)"
+chart_title = "AICs and log-likelihood \nof estimated models \n(with NAIRU gap; US-only)"
 fig = heatmap(
     input=df_loglik,
     mask=False,

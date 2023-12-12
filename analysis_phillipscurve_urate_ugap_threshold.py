@@ -249,9 +249,22 @@ def meowmeowcapybara_fe(
 # Chart settings
 heatmaps_y_fontsize = 11
 heatmaps_x_fontsize = 11
-heatmaps_title_fontsize = 9
-heatmaps_annot_fontsize = 12
+heatmaps_title_fontsize = 18
+heatmaps_annot_fontsize = 18
 list_file_names = []
+dict_math_greek = {
+    "urate": r"$u_{t}$",
+    "urate_gap": r"$u^{gap}_{t}$",
+    "urate_gap_threshold": r"$1\{u^{gap}_{t} < \tau\}$",
+    "urate:urate_gap": r"$u_{t} * u^{gap}_{t}$",
+    "urate:urate_gap_threshold": r"$u_{t} * 1\{u^{gap}_{t} < \tau\}$",
+    "urate_int_urate_gap": r"$u_{t} * u^{gap}_{t}$",
+    "urate_int_urate_gap_threshold": r"$u_{t} * 1\{u^{gap}_{t} < \tau\}$",
+    "expcpi": r"$\mathbb{E}_{t}\pi$",
+    "corecpi_lag1": r"$\pi_{t-1}$",
+    "reer": r"$z_{t}$",
+    "Intercept": r"$\alpha$",
+}
 # %%
 # POLS
 # Without REER
@@ -268,11 +281,12 @@ params_table_pols, threshold_optimal_pols, df_loglik_pols = meowmeowcapybara_pol
 file_name = path_output + "phillipscurve_urate_ugap_threshold_params_pols"
 list_file_names += [file_name]
 chart_title = (
-    "Pooled OLS: Without REER"
-    + " (Optimal Threshold: U-Rate Gap <= "
+    "Pooled OLS: without REER"
+    + "\n (optimal threshold: u-rate gap <= "
     + str(threshold_optimal_pols)
     + ")"
 )
+params_table_pols = params_table_pols.rename(index=dict_math_greek)
 fig = heatmap(
     input=params_table_pols,
     mask=False,
@@ -308,11 +322,12 @@ df_loglik_pols.to_parquet(file_name + "_logliksearch" + ".parquet")
 file_name = path_output + "phillipscurve_urate_ugap_threshold_params_pols_reer"
 list_file_names += [file_name]
 chart_title = (
-    "Pooled OLS: With REER"
-    + " (Optimal Threshold: U-Rate Gap <= "
+    "Pooled OLS: with REER"
+    + "\n (optimal threshold: u-rate gap <= "
     + str(threshold_optimal_pols)
     + ")"
 )
+params_table_pols_reer = params_table_pols_reer.rename(index=dict_math_greek)
 fig = heatmap(
     input=params_table_pols_reer,
     mask=False,
@@ -348,11 +363,12 @@ params_table_fe, threshold_optimal_fe, df_loglik_fe = meowmeowcapybara_fe(
 file_name = path_output + "phillipscurve_urate_ugap_threshold_params_fe"
 list_file_names += [file_name]
 chart_title = (
-    "FE: Without REER"
-    + " (Optimal Threshold: U-Rate Gap <= "
+    "FE: without REER"
+    + "\n (optimal threshold: u-rate gap <= "
     + str(threshold_optimal_pols)
     + ")"
 )
+params_table_fe = params_table_fe.rename(index=dict_math_greek)
 fig = heatmap(
     input=params_table_fe,
     mask=False,
@@ -390,11 +406,12 @@ df_loglik_fe.to_parquet(file_name + "_logliksearch" + ".parquet")
 file_name = path_output + "phillipscurve_urate_ugap_threshold_params_fe_reer"
 list_file_names += [file_name]
 chart_title = (
-    "FE: With REER"
-    + " (Optimal Threshold: U-Rate Gap <= "
+    "FE: with REER"
+    + "\n (optimal threshold: u-rate gap <= "
     + str(threshold_optimal_pols)
     + ")"
 )
+params_table_fe_reer = params_table_fe_reer.rename(index=dict_math_greek)
 fig = heatmap(
     input=params_table_fe_reer,
     mask=False,

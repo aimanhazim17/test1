@@ -8,9 +8,11 @@ from helper import (
     subplots_scatterplots,
     scatterplot,
     subplots_linecharts,
+    stacked_barchart,
+    stacked_barchart_overlaycallouts,
     lineplot,
     pil_img2pdf,
-    heatmap
+    heatmap,
 )
 from helper_plucking import compute_urate_floor
 from datetime import date, timedelta
@@ -61,7 +63,9 @@ df_nairu_us["quarter"] = df_nairu_us["quarter"].astype("str")
 # Merge
 df = df.merge(df_ugap, on=["country", "quarter"], how="outer", validate="one_to_one")
 df = df.merge(df_expcpi, on=["country", "quarter"], how="outer", validate="one_to_one")
-df = df.merge(df_nairu_us, on=["country", "quarter"], how="outer", validate="one_to_one")
+df = df.merge(
+    df_nairu_us, on=["country", "quarter"], how="outer", validate="one_to_one"
+)
 # Sort
 df = df.sort_values(by=["country", "quarter"])
 
@@ -130,7 +134,7 @@ cols_colours = ["black", "crimson", "darkblue"]
 cols_width = [2, 2, 2]
 cols_dash = ["solid", "dash", "dash"]
 file_name = path_output + "urate_uratefloor_nairu_united_states"
-chart_title = "U-Rate, U-Rate Floor, and NAIRU in the US"
+chart_title = "The u-rate, u-rate floor and NAIRU in the US"
 fig = lineplot(
     data=df_sub,
     y_cols=cols_urates,
@@ -141,11 +145,14 @@ fig = lineplot(
     line_widths=cols_width,
     line_dashes=cols_dash,
     main_title=chart_title,
+    font_size=24
 )
 fig.write_image(file_name + ".png")
 telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 # %%
 # Tabulate how many times the u-rate has crossed the NAIRU, or the u-rate floor
+# %%
+# heatmap
 df_sub.loc[df_sub["urate"] <= df_sub["nairu"], "urate_below_nairu"] = 1
 df_sub.loc[df_sub["urate"] > df_sub["nairu"], "urate_below_nairu"] = 0
 df_sub.loc[df_sub["urate_gap"] == 0, "urate_at_floor"] = 1
@@ -155,12 +162,13 @@ tab_urate_nairu_floor = pd.concat(
         df_sub["urate_below_nairu"].value_counts(normalize=True),
         df_sub["urate_at_floor"].value_counts(normalize=True),
     ],
-    axis=1
-    )
+    axis=1,
+)
 tab_urate_nairu_floor.columns = ["U-Rate at or Below NAIRU", "U-Rate at Floor"]
 tab_urate_nairu_floor = 100 * tab_urate_nairu_floor
-chart_title = "Percentage of Observations in the US \nWhere U-Rate is Relative to the NAIRU, \nand U-Rate Floor"
+chart_title = "Percentage of observations in the US stratified by \nwhere u-rate is relative to the NAIRU \nand the floor"
 file_name = path_output + "urate_uratefloor_nairu_tabperc_united_states"
+
 fig = heatmap(
     input=tab_urate_nairu_floor,
     mask=False,
@@ -176,6 +184,63 @@ fig = heatmap(
     title_fontsize=14,
     annot_fontsize=16,
 )
+telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
+# %%
+# stacked bar chart
+chart_title = "Percentage of observations in the US stratified by where <br> the u-rate is relative to the NAIRU and the floor"
+tab_urate_nairu_floor_flipped = tab_urate_nairu_floor.transpose()
+tab_urate_nairu_floor_flipped.index = ["NAIRU", "Plucking u-rate floor"]
+tab_urate_nairu_floor_flipped = tab_urate_nairu_floor_flipped.round(2).astype("str")
+tab_urate_nairu_floor_flipped.loc[
+    "NAIRU", "U-rate at / below NAIRU or at floor (callouts)"
+] = ("U-rate at / below NAIRU: <br>" + tab_urate_nairu_floor_flipped.loc["NAIRU", 0] + "%")
+tab_urate_nairu_floor_flipped.loc[
+    "NAIRU", "U-rate above NAIRU or above floor (callouts)"
+] = ("U-rate above NAIRU: <br>" + tab_urate_nairu_floor_flipped.loc["NAIRU", 1] + "%")
+tab_urate_nairu_floor_flipped.loc[
+    "Plucking u-rate floor", "U-rate at / below NAIRU or at floor (callouts)"
+] = (
+    "U-rate at floor: <br>"
+    + tab_urate_nairu_floor_flipped.loc["Plucking u-rate floor", 0]
+    + "%"
+)
+tab_urate_nairu_floor_flipped.loc[
+    "Plucking u-rate floor", "U-rate above NAIRU or above floor (callouts)"
+] = (
+    "U-rate above floor: <br>"
+    + tab_urate_nairu_floor_flipped.loc["Plucking u-rate floor", 1]
+    + "%"
+)
+tab_urate_nairu_floor_flipped = tab_urate_nairu_floor_flipped.reset_index(drop=False)
+cols_models = ["Model"]
+cols_nairu_floor_comparison = [
+    "U-rate at / below NAIRU or at floor",
+    "U-rate above NAIRU or above floor",
+]
+cols_nairu_floor_comparison_callouts = [
+    i + " (callouts)" for i in cols_nairu_floor_comparison
+]
+colours_nairu_floor_comparison = ["lavenderblush", "lightcyan"]
+tab_urate_nairu_floor_flipped.columns = (
+    cols_models + cols_nairu_floor_comparison + cols_nairu_floor_comparison_callouts
+)
+tab_urate_nairu_floor_flipped[cols_nairu_floor_comparison] = (
+    tab_urate_nairu_floor_flipped[cols_nairu_floor_comparison].astype("float").round(2)
+)
+fig = stacked_barchart_overlaycallouts(
+    data=tab_urate_nairu_floor_flipped,
+    stacked_y_cols=cols_nairu_floor_comparison,
+    callouts_stacked_y_cols=cols_nairu_floor_comparison_callouts,
+    stacked_colours=colours_nairu_floor_comparison,
+    x_col=cols_models[0],
+    main_title=chart_title,
+    decimal_points=2,
+    font_size=24,
+    bar_callout_size=36,
+)
+fig.update_layout(showlegend=False)
+file_name = path_output + "urate_uratefloor_nairu_tabperc_stackedbar_united_states"
+fig.write_image(file_name + ".png")
 telsendimg(conf=tel_config, path=file_name + ".png", cap=chart_title)
 
 # %%
