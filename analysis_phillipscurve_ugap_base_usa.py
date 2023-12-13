@@ -58,7 +58,9 @@ df_nairu_us["quarter"] = df_nairu_us["quarter"].astype("str")
 # Merge
 df = df.merge(df_ugap, on=["country", "quarter"], how="outer", validate="one_to_one")
 df = df.merge(df_expcpi, on=["country", "quarter"], how="outer", validate="one_to_one")
-df = df.merge(df_nairu_us, on=["country", "quarter"], how="outer", validate="one_to_one")
+df = df.merge(
+    df_nairu_us, on=["country", "quarter"], how="outer", validate="one_to_one"
+)
 # Sort
 df = df.sort_values(by=["country", "quarter"])
 
@@ -90,11 +92,28 @@ list_countries_keep = [
 ]
 df = df[df["country"].isin(list_countries_keep)]
 # Compute NAIRU gap
-df["nairu_gap"] = df["urate"] - df["nairu"] 
+df["nairu_gap"] = df["urate"] - df["nairu"]
 # Transform
-cols_pretransformed = ["rgdp", "m2", "cpi", "corecpi", "maxgepu", "expcpi", "nairu_gap", "urate_gap"]
+cols_pretransformed = [
+    "rgdp",
+    "m2",
+    "cpi",
+    "corecpi",
+    "maxgepu",
+    "expcpi",
+    "nairu_gap",
+    "urate_gap",
+]
 cols_levels = ["reer", "ber", "brent", "gepu"]
-cols_rate = ["stir", "ltir", "urate_ceiling", "urate", "nairu", "privdebt", "privdebt_bank"]
+cols_rate = [
+    "stir",
+    "ltir",
+    "urate_ceiling",
+    "urate",
+    "nairu",
+    "privdebt",
+    "privdebt_bank",
+]
 for col in cols_levels:
     df[col] = 100 * ((df[col] / df.groupby("country")[col].shift(4)) - 1)
 for col in cols_rate:
@@ -195,9 +214,13 @@ fig = heatmap(
 # POLS (lagged u-rate gap)
 # Without REER
 eqn = "corecpi ~ 1 + urate_gap_lag1 + expcpi + corecpi_lag1"
-mod_pols_lag1, res_pols_lag1, params_table_pols_lag1, joint_teststats_pols_lag1, reg_det_pols_lag1 = reg_ols(
-    df=df, eqn=eqn
-)
+(
+    mod_pols_lag1,
+    res_pols_lag1,
+    params_table_pols_lag1,
+    joint_teststats_pols_lag1,
+    reg_det_pols_lag1,
+) = reg_ols(df=df, eqn=eqn)
 file_name = path_output + "phillipscurve_ugap_base_lag1_usa_params_pols"
 list_file_names += [file_name]
 chart_title = "OLS: without REER \n(with lagged plucking u-rate gap; \nUS-only)"
@@ -273,7 +296,7 @@ df_loglik = pd.DataFrame(
         "Log-Likelihood": [
             res_pols.llf,
             res_pols_reer.llf,
-        ]
+        ],
     }
 )
 df_loglik = pd.DataFrame(df_loglik.set_index("Model"))
@@ -290,7 +313,7 @@ fig = heatmap(
     ub=df_loglik.max().max(),
     format=".4f",
     show_annot=True,
-    y_fontsize=heatmaps_y_fontsize,
+    y_fontsize=heatmaps_y_fontsize - 4,
     x_fontsize=heatmaps_x_fontsize,
     title_fontsize=heatmaps_title_fontsize,
     annot_fontsize=heatmaps_annot_fontsize,
