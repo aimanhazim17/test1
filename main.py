@@ -19,6 +19,9 @@ import descriptive_plucking_urate_quarterly_bizcycles
 import analysis_plucking_ugap_quarterly
 import descriptive_plucking_ugap_quarterly_viz
 # %%
+import analysis_plucking_ugap_quarterly_vintages
+import descriptive_plucking_ugap_quarterly_vintages_viz
+# %%
 import descriptive_plucking_ugap_quarterly_stylisedstats
 # %%
 import descriptive_urate_quarterly_stylisedstats

@@ -26,18 +26,12 @@ path_ceic = "./ceic/"
 path_dep = "./dep/"
 tel_config = os.getenv("TEL_CONFIG")
 
-list_t_cutoff = [None, "2019Q4", "2018Q1"]
+list_t_cutoff = [None, "2019Q4"]
+list_params_suffix = ["", "_2019"]
 
 # %%
 # I --- Load data
 df = pd.read_parquet(path_data + "data_macro_quarterly_urate.parquet")
-country_parameters = pd.read_csv(path_dep + "parameters_by_country_quarterly.csv")
-dict_country_x_multiplier = dict(
-    zip(country_parameters["country"], country_parameters["x_multiplier_choice"])
-)
-dict_country_tlb = dict(
-    zip(country_parameters["country"], country_parameters["tlb"].fillna(""))
-)
 
 # %%
 # II --- Additional wrangling
@@ -67,11 +61,38 @@ list_countries_keep = [
     "brazil",
 ]
 df = df[df["country"].isin(list_countries_keep)]
+# Dictionary to change snake case names to nice names
+dict_countries_snake_to_nice = {
+    "australia": "Australia",
+    "malaysia": "Malaysia",
+    "singapore": "Singapore",
+    "thailand": "Thailand",
+    "indonesia": "Indonesia",
+    "philippines": "Philippines",
+    "united_states": "United States",
+    "united_kingdom": "United Kingdom",
+    "germany": "Germany",
+    "france": "France",
+    "italy": "Italy",
+    "japan": "Japan",
+    "south_korea": "South Korea",
+    "hong_kong_sar_china_": "Hong Kong SAR",
+    "india": "India",
+    "china": "China",
+    "chile": "Chile",
+    "mexico": "Mexico",
+    "brazil": "Brazil",
+}
 
 
 # %%
 # III --- Compute urate floor
-def capybara(df: pd.DataFrame, t_cutoff: str = None):
+def capybara(
+    df: pd.DataFrame,
+    dict_country_threshold: dict,
+    dict_country_starttime: dict,
+    t_cutoff: str = None,
+):
     # Key parameters
     # downturn_threshold_multiplier = 1  # x times standard deviation
     col_choice = "urate"
@@ -87,7 +108,7 @@ def capybara(df: pd.DataFrame, t_cutoff: str = None):
             df_sub = df[df["country"] == country].copy()
         df_sub = df_sub.reset_index(drop=True)
         # restrict time
-        tlb = dict_country_tlb[country]
+        tlb = dict_country_starttime[country]
         if tlb == "":
             pass
         else:
@@ -95,7 +116,7 @@ def capybara(df: pd.DataFrame, t_cutoff: str = None):
             df_sub = df_sub[df_sub["quarter"] >= tlb]
             df_sub["quarter"] = df_sub["quarter"].astype("str")
         # draw out what threshold multiplier to use
-        downturn_threshold_multiplier = dict_country_x_multiplier[country]
+        downturn_threshold_multiplier = dict_country_threshold[country]
         # which country
         print(
             "Now estimating for "
@@ -161,12 +182,77 @@ df_ceiling_vintages = pd.DataFrame(
         "urate_trough",
     ]
 )
-for t_cutoff in list_t_cutoff:
-    df_ceiling = capybara(df=df, t_cutoff=t_cutoff)
+for t_cutoff, params_suffix in zip(list_t_cutoff, list_params_suffix):
+    # load params
+    country_parameters = pd.read_csv(
+        path_dep + "parameters_by_country_quarterly" + params_suffix + ".csv"
+    )
+    dict_country_x_multiplier = dict(
+        zip(country_parameters["country"], country_parameters["x_multiplier_choice"])
+    )
+    dict_country_tlb = dict(
+        zip(country_parameters["country"], country_parameters["tlb"].fillna(""))
+    )
+
+    # load params (static version)
+    # country_parameters = pd.read_csv(
+    #     path_dep + "parameters_by_country_quarterly" + "_2019" + ".csv"
+    # )
+    # dict_country_x_multiplier = dict(
+    #     zip(country_parameters["country"], country_parameters["x_multiplier_choice"])
+    # )
+    # dict_country_tlb = dict(
+    #     zip(country_parameters["country"], country_parameters["tlb"].fillna(""))
+    # )
+
+    # estimate vintage
+    df_ceiling = capybara(
+        df=df,
+        t_cutoff=t_cutoff,
+        dict_country_threshold=dict_country_x_multiplier,
+        dict_country_starttime=dict_country_tlb,
+    )
+
+    # combine vintages
     df_ceiling_vintages = pd.concat(
         [df_ceiling_vintages, df_ceiling], axis=0
     )  # top-down
 
+    # Generate table of tolerance thresholds (multiplier and actual percentage points)
+    df_country_x_multiplier = pd.DataFrame.from_dict(
+        dict_country_x_multiplier, orient="index"
+    )
+    df_country_x_multiplier = df_country_x_multiplier[
+        df_country_x_multiplier.index.isin(list_countries_keep)
+    ]
+    if t_cutoff is None:
+        df_sub = df.copy()
+    else:
+        df_sub = df[df["quarter"] <= t_cutoff].copy()
+    df_country_stdev = pd.DataFrame(df_sub.groupby("country")["urate"].std())
+    df_country_stdev.index.name = None
+    df_country_x_multiplier = pd.concat(
+        [df_country_x_multiplier, df_country_stdev], axis=1
+    )
+    df_country_x_multiplier = df_country_x_multiplier.rename(
+        index=dict_countries_snake_to_nice
+    )
+    df_country_x_multiplier.columns = [
+        "tolerance_threshold_multiplier",
+        "tolerance_threshold_pp",
+    ]
+    df_country_x_multiplier["tolerance_threshold_pp"] = (
+        df_country_x_multiplier["tolerance_threshold_multiplier"]
+        * df_country_x_multiplier["tolerance_threshold_pp"]
+    )
+    # df_country_x_multiplier = df_country_x_multiplier.round(2)
+    df_country_x_multiplier.to_csv(
+        path_output
+        + "plucking_ugap_quarterly_tolerance_thresholds"
+        + params_suffix
+        + ".csv",
+        index=True,
+    )
 
 # %%
 # IV --- Output
@@ -175,7 +261,6 @@ df_ceiling_vintages.to_parquet(path_output + "plucking_ugap_quarterly_vintages.p
 df_ceiling_vintages.to_csv(
     path_output + "plucking_ugap_quarterly_vintages.csv", index=False
 )
-
 
 # %%
 # X --- Notify

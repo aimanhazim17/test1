@@ -371,11 +371,12 @@ def compute_urate_floor(
                         df[col_ceiling].shift(-1) - ceiling_one_avgdiff
                     )  # reverse
 
-            # hard-impose definition of 'ceiling' (floor for urate)
+            # hard-impose definition of 'ceiling' (floor for urate) & non-negative condition
             if hard_bound | (col_level == "ln_lforce") | (col_level == "ln_nks"):
                 df.loc[df[col_ceiling] > df[col_level], col_ceiling] = df[
                     col_level
                 ]  # replace with levels if first guess is lower; opposite because urate
+                df.loc[df[col_ceiling] < 0, col_ceiling] = 0  # non-negative condition
 
         # Left-right merge + bounds
         if count_xbound_now == 0:
