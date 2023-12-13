@@ -118,15 +118,15 @@ del df["country"]
 # II --- Analysis
 # %%
 # Chart settings
-heatmaps_y_fontsize = 12
+heatmaps_y_fontsize = 22
 heatmaps_x_fontsize = 12
 heatmaps_title_fontsize = 24
 heatmaps_annot_fontsize = 22
 list_file_names = []
 dict_math_greek = {
     "urate": r"$u_{t}$",
-    "urate_gap": r"$u^{plucking \ gap}_{t}$",
-    "nairu_gap": r"$u^{nairu \ gap}_{t}$",
+    "urate_gap": r"$u^{pg}_{t}$",
+    "nairu_gap": r"$u^{ng}_{t}$",
     "urate:urate_gap": r"$u_{t} * u^{plucking \ gap}_{t}$",
     "urate:nairu_gap": r"$u_{t} * u^{nairu \ gap}_{t}$",
     "expcpi": r"$\mathbb{E}_{t}\pi$",
@@ -251,8 +251,8 @@ fig = heatmap(
 df_loglik = pd.DataFrame(
     {
         "Model": [
-            "OLS: without REER",
-            "OLS: with REER",
+            "W/o REER",
+            "With REER",
         ],
         "AICc": [
             (-2 * res_pols.llf + 2 * res_pols.df_model)

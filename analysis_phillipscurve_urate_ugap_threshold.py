@@ -247,8 +247,8 @@ def meowmeowcapybara_fe(
 
 # %%
 # Chart settings
-heatmaps_y_fontsize = 11
-heatmaps_x_fontsize = 11
+heatmaps_y_fontsize = 18
+heatmaps_x_fontsize = 12
 heatmaps_title_fontsize = 18
 heatmaps_annot_fontsize = 18
 list_file_names = []

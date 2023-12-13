@@ -107,7 +107,7 @@ del df["country"]
 # II --- Analysis
 # %%
 # Chart settings
-heatmaps_y_fontsize = 12
+heatmaps_y_fontsize = 22
 heatmaps_x_fontsize = 12
 heatmaps_title_fontsize = 24
 heatmaps_annot_fontsize = 22
@@ -185,8 +185,8 @@ fig = heatmap(
 df_loglik = pd.DataFrame(
     {
         "Model": [
-            "OLS: without REER",
-            "OLS: with REER",
+            "W/o REER",
+            "With REER",
         ],
         "AICc": [
             (-2 * res_pols.llf + 2 * res_pols.df_model)
