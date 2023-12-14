@@ -191,36 +191,39 @@ chart_title = "Percentage of observations in the US stratified by where <br> the
 tab_urate_nairu_floor_flipped = tab_urate_nairu_floor.transpose()
 tab_urate_nairu_floor_flipped.index = ["NAIRU", "Plucking u-rate floor"]
 tab_urate_nairu_floor_flipped = tab_urate_nairu_floor_flipped.round(2).astype("str")
-tab_urate_nairu_floor_flipped.loc[
-    "NAIRU", "U-rate at / below NAIRU or at floor (callouts)"
-] = ("U-rate at / below NAIRU: <br>" + tab_urate_nairu_floor_flipped.loc["NAIRU", 0] + "%")
+# callouts (column order need to match)
 tab_urate_nairu_floor_flipped.loc[
     "NAIRU", "U-rate above NAIRU or above floor (callouts)"
-] = ("U-rate above NAIRU: <br>" + tab_urate_nairu_floor_flipped.loc["NAIRU", 1] + "%")
-tab_urate_nairu_floor_flipped.loc[
-    "Plucking u-rate floor", "U-rate at / below NAIRU or at floor (callouts)"
-] = (
-    "U-rate at floor: <br>"
-    + tab_urate_nairu_floor_flipped.loc["Plucking u-rate floor", 0]
-    + "%"
-)
+] = ("U-rate above NAIRU: <br>" + tab_urate_nairu_floor_flipped.loc["NAIRU", 0] + "%")
 tab_urate_nairu_floor_flipped.loc[
     "Plucking u-rate floor", "U-rate above NAIRU or above floor (callouts)"
 ] = (
     "U-rate above floor: <br>"
+    + tab_urate_nairu_floor_flipped.loc["Plucking u-rate floor", 0]
+    + "%"
+)
+# callouts (column order need to match)
+tab_urate_nairu_floor_flipped.loc[
+    "NAIRU", "U-rate at / below NAIRU or at floor (callouts)"
+] = ("U-rate at / below NAIRU: <br>" + tab_urate_nairu_floor_flipped.loc["NAIRU", 1] + "%")
+tab_urate_nairu_floor_flipped.loc[
+    "Plucking u-rate floor", "U-rate at / below NAIRU or at floor (callouts)"
+] = (
+    "U-rate at floor: <br>"
     + tab_urate_nairu_floor_flipped.loc["Plucking u-rate floor", 1]
     + "%"
 )
+
 tab_urate_nairu_floor_flipped = tab_urate_nairu_floor_flipped.reset_index(drop=False)
 cols_models = ["Model"]
 cols_nairu_floor_comparison = [
-    "U-rate at / below NAIRU or at floor",
     "U-rate above NAIRU or above floor",
+    "U-rate at / below NAIRU or at floor",
 ]
 cols_nairu_floor_comparison_callouts = [
     i + " (callouts)" for i in cols_nairu_floor_comparison
 ]
-colours_nairu_floor_comparison = ["lavenderblush", "lightcyan"]
+colours_nairu_floor_comparison = ["lightcyan", "lavenderblush"]
 tab_urate_nairu_floor_flipped.columns = (
     cols_models + cols_nairu_floor_comparison + cols_nairu_floor_comparison_callouts
 )

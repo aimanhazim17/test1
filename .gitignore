@@ -189,6 +189,8 @@ old_static_*.txt
 *.log
 *.out
 *.gz
+*.fff
+*.lof
 
 # Special py files
 sendfiles.py
