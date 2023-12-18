@@ -89,7 +89,7 @@ nested_list_country_groups = [
     countries_bigemerging,
     countries_adv,
 ]
-nice_group_names_by_country_groups = ["ASEAN-4", "Asian NIEs", "Major EMs", "AEs"]
+nice_group_names_by_country_groups = ["ASEAN-4", "Asian NIEs", "Major EEs", "AEs"]
 snakecase_group_names_by_country_groups = ["asean4", "asianie", "bigemerging", "adv"]
 rows_by_country_groups = [2, 2, 2, 3]
 cols_by_country_groups = [2, 2, 3, 3]
@@ -107,7 +107,7 @@ dict_countries_snake_to_nice = {
     "france": "France",
     "italy": "Italy",
     "japan": "Japan",
-    "south_korea": "South Korea",
+    "south_korea": "Korea",
     "hong_kong_sar_china_": "Hong Kong SAR",
     "india": "India",
     "china": "China",

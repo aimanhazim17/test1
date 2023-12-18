@@ -59,6 +59,17 @@ df = df.sort_values(by=["country", "quarter"])
 df_params = pd.read_parquet(
     path_output + "phillipscurve_urate_ugap_params_fe_reer" + ".parquet"
 )
+dict_math_greek = {
+    r"$u_{t}$": "urate",
+    r"$u^{gap}_{t}$": "urate_gap",
+    r"$u_{t} * u^{gap}_{t}$": "urate:urate_gap",
+    r"$u_{t} * u^{gap}_{t}$": "urate_int_urate_gap",
+    r"$\mathbb{E}_{t}\pi$": "expcpi",
+    r"$\pi_{t-1}$": "corecpi_lag1",
+    r"$z_{t}$": "reer",
+    r"$\alpha$": "Intercept",
+}
+df_params = df_params.rename(index=dict_math_greek)
 
 # %%
 # II --- Pre-analysis wrangling
@@ -94,7 +105,7 @@ nested_list_country_groups = [
     countries_bigemerging,
     countries_adv,
 ]
-nice_group_names_by_country_groups = ["ASEAN-4", "Asian NIEs", "Major EMs", "AEs"]
+nice_group_names_by_country_groups = ["ASEAN-4", "Asian NIEs", "Major EEs", "AEs"]
 snakecase_group_names_by_country_groups = ["asean4", "asianie", "bigemerging", "adv"]
 rows_by_country_groups = [2, 2, 2, 3]
 cols_by_country_groups = [2, 2, 2, 3]
@@ -112,7 +123,7 @@ dict_countries_snake_to_nice = {
     "france": "France",
     "italy": "Italy",
     "japan": "Japan",
-    "south_korea": "South Korea",
+    "south_korea": "Korea",
     "hong_kong_sar_china_": "Hong Kong SAR",
     "india": "India",
     "china": "China",

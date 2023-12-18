@@ -151,7 +151,7 @@ fig_irf = lp.ThresholdIRFPlot(
     shock=endog_base,
     n_columns=len(endog_base),
     n_rows=len(endog_base),
-    maintitle="Local projections model: impulse response functions (EMEs); red = u-rate is at the floor",
+    maintitle="Local projections model: impulse response functions (EEs); red = u-rate is at the floor",
     show_fig=False,
     save_pic=False,
     out_path="",

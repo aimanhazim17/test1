@@ -143,7 +143,7 @@ mod_pols, res_pols, params_table_pols, joint_teststats_pols, reg_det_pols = reg_
 )
 file_name = path_output + "phillipscurve_urate_nairu_usa_params_pols"
 list_file_names += [file_name]
-chart_title = "OLS: without REER \n(full model with NAIRU gap; US-only)"
+chart_title = "OLS: without REER \n(full model with NAIRU gap; \nUS-only)"
 params_table_pols = params_table_pols.rename(index=dict_math_greek)
 fig = heatmap(
     input=params_table_pols,
@@ -172,7 +172,7 @@ eqn = "corecpi ~ 1 + urate * nairu_gap + expcpi + corecpi_lag1 + reer"
 ) = reg_ols(df=df, eqn=eqn)
 file_name = path_output + "phillipscurve_urate_nairu_usa_params_pols_reer"
 list_file_names += [file_name]
-chart_title = "OLS: with REER \n(full model with NAIRU gap; US-only)"
+chart_title = "OLS: with REER \n(full model with NAIRU gap; \nUS-only)"
 params_table_pols_reer = params_table_pols_reer.rename(index=dict_math_greek)
 fig = heatmap(
     input=params_table_pols_reer,
@@ -197,7 +197,7 @@ fig = heatmap(
 df_loglik = pd.DataFrame(
     {
         "Model": [
-            "Without REER",
+            "W/o REER",
             "With REER",
         ],
         "AICc": [
@@ -225,7 +225,7 @@ df_loglik = pd.DataFrame(
 df_loglik = pd.DataFrame(df_loglik.set_index("Model"))
 file_name = path_output + "phillipscurve_urate_nairu_usa_loglik"
 list_file_names += [file_name]
-chart_title = "AICs and log-likelihood \nof estimated models \n(full model with NAIRU gap; US-only)"
+chart_title = "AICs and log-likelihood \nof estimated models \n(full model with NAIRU gap; \nUS-only)"
 fig = heatmap(
     input=df_loglik,
     mask=False,
